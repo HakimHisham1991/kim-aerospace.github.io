@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unit Converter</title>
+  <!-- Reuse your existing CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>MM ↔ Inch Converter</h1>
+    <div class="tool-card">
+      <input type="number" id="mmInput" placeholder="Millimeters" class="converter-input">
+      <button onclick="convertMmToInch()">Convert to Inches</button>
+      <p id="inchResult">Result: 0 inches</p>
+    </div>
+    <div class="tool-card">
+      <input type="number" id="inchInput" placeholder="Inches" class="converter-input">
+      <button onclick="convertInchToMm()">Convert to MM</button>
+      <p id="mmResult">Result: 0 mm</p>
+    </div>
+    <a href="index.html">← Back to Home</a>
+  </div>
+
+  <!-- Reuse existing JS or add new logic -->
+  <script>
+    function convertMmToInch() {
+      const mm = parseFloat(document.getElementById("mmInput").value);
+      const inches = mm / 25.4;
+      document.getElementById("inchResult").textContent = `Result: ${inches.toFixed(4)} inches`;
+    }
+
+    function convertInchToMm() {
+      const inches = parseFloat(document.getElementById("inchInput").value);
+      const mm = inches * 25.4;
+      document.getElementById("mmResult").textContent = `Result: ${mm.toFixed(2)} mm`;
+    }
+  </script>
+</body>
+</html>

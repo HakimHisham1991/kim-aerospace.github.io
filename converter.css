@@ -1,95 +1,15 @@
-.table-wrapper {
-  overflow-x: auto;
-  width: 100%;
-  -webkit-overflow-scrolling: touch;
-}
-
-body {
-  font-family: sans-serif;
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
   padding: 20px;
-  background: #f5f5f5;
-}
-h1 {
-  font-size: 1.5rem;
-}
-input[type="file"] {
-  margin-bottom: 10px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  background: #fff;
-}
-th,
-td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: left;
-}
-th {
-  background: #eee;
-}
-.download {
-  margin-top: 10px;
-}
-.tool-group {
-  margin-top: 15px;
   border-radius: 8px;
-  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-.tool-header {
-  padding: 10px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  color: #333;
-  user-select: none;
-}
-.tool-body {
-  display: none;
-}
-.tool-body .table-wrapper {
-  margin: 0;
-}
-.controls {
-  margin-top: 10px;
-}
-.controls label,
-.controls button {
-  margin-right: 10px;
-  margin-top: 5px;
-}
-.controls button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-.controls button.active {
-  background-color: #d0ebff;
-}
-.file-stats {
+.tool-card {
+  border: 1px solid #ddd;
+  padding: 15px;
   margin: 10px 0;
-  padding: 8px;
-  background: #e9ecef;
   border-radius: 4px;
-  font-size: 1.5rem;
-}
-.file-stats span {
-  display: block;
-  margin-bottom: 4px;
-}
-.file-input-wrapper {
-  display: inline-block;
-  position: relative;
-  margin-bottom: 10px;
-}
-
-#fileInput {
-  font-size: 1.2rem;
-  padding: 10px 15px;
-  width: auto;
-  height: auto;
-  transform: scale(1);
-  transform-origin: left center;
-  margin-left: 20px; /* Add some space to account for the scaling */
+  background: #f9f9f9;
 }

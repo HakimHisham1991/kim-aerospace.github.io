@@ -52,3 +52,10 @@ th { background: #eee; }
   transform-origin: left center;
   margin-left: 20px; /* Add some space to account for the scaling */
 }
+
+
+.converter-input {
+  padding: 8px;
+  margin: 5px 0;
+  width: 150px;
+}

@@ -1,44 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NC Program Analyzer</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>My Engineering Tools</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+    }
+    .tool-card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+      background: #f9f9f9;
+    }
+    .tool-card a {
+      display: inline-block;
+      padding: 8px 15px;
+      background: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    .tool-card a:hover {
+      background: #0056b3;
+    }
+  </style>
 </head>
 <body>
-  <h1>Heidenhain NC File Analyzer</h1>
-  <div class="file-input-wrapper">
-  <input type="file" id="fileInput" accept="*/*">
-  </div><br>
-  
-  <div class="file-stats">
-  <span id="lineCount">Lines: 0</span>
-  <span id="charCount">Characters: 0</span>
-  <span id="wordCount">Words: 0</span>
-  <span id="opCount">No. of Ops: 0</span>
-  <span id="uniqueToolsCount">Unique Tools: 0</span> <!-- Add this line -->
-</div>
+  <div class="container">
+    <h1>Welcome to My Engineering Tools</h1>
+    <p>Explore the tools I've built:</p>
 
-  <div class="download">
-    <label for="format">Download as:</label>
-    <select id="format">
-      <option value="csv">CSV</option>
-      <option value="xlsx">XLSX</option>
-      <option value="txt">TXT</option>
-    </select>
-    <button id="downloadBtn">Download</button>
+    <div class="tool-card">
+      <h2>Heidenhain NC File Analyzer</h2>
+      <p>Analyze NC program files for operations, tools, and feedrates.</p>
+      <a href="analyzer.html">Open Tool</a>
+    </div>
+
+    <!-- Add more tool cards here later -->
   </div>
-
-  <div class="controls">
-    <label><input type="checkbox" id="groupToggle"> Group by Tool (collapsible)</label><br>
-    <button id="collapseAll" disabled>Collapse All</button>
-    <button id="expandAll" disabled>Expand All</button>
-  </div>
-
-  <div id="groupContainer"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="script.js"></script>
 </body>
+</html>
 </html>

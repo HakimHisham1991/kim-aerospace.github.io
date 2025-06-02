@@ -1,6 +1,7 @@
 let parsedData = [];
 const toolColors = {};
 const colorPalette = ['#fce4ec', '#e3f2fd', '#e8f5e9', '#fff3e0', '#ede7f6', '#f3e5f5', '#f1f8e9', '#e0f7fa', '#f9fbe7', '#fbe9e7'];
+let inputFileName = '';
 
 function getToolColor(toolName) {
   if (!toolColors[toolName]) {
@@ -47,6 +48,9 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
   const file = e.target.files[0];
   if (!file) return;
 
+  // Store the filename without extension
+  inputFileName = file.name.replace(/\.[^/.]+$/, "");
+  
   const reader = new FileReader();
   reader.onload = function (e) {
     const content = e.target.result;
@@ -253,6 +257,9 @@ function renderFlat(container) {
 document.getElementById('downloadBtn').addEventListener('click', function () {
   const format = document.getElementById('format').value;
 
+  // Use the input filename if available, otherwise fall back to 'nc_output'
+  const baseName = inputFileName || 'nc_output';
+  
   const rows = [
     ["No.", "Operation Name", "Tool Name", "Tool Number", "Spindle RPM", "Feedrates"]
   ];
@@ -269,10 +276,10 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
 
   if (format === 'csv') {
     const csvContent = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-    downloadFile(csvContent, 'nc_output.csv', 'text/csv');
+    downloadFile(csvContent, `${baseName}.csv`, 'text/csv');
   } else if (format === 'txt') {
     const txtContent = rows.map(row => row.join('\t')).join('\n');
-    downloadFile(txtContent, 'nc_output.txt', 'text/plain');
+    downloadFile(txtContent, `${baseName}.txt`, 'text/plain');
   } else if (format === 'xlsx') {
     const ws = XLSX.utils.aoa_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -282,7 +289,7 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
 
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'nc_output.xlsx';
+    link.download = `${baseName}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

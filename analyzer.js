@@ -30,7 +30,6 @@ function updateFileStats(content) {
       const opCount = table.querySelectorAll('tbody tr').length || table.querySelectorAll('tr:not(:first-child)').length || 0;
       document.getElementById('opCount').textContent = `No. of Ops: ${opCount.toLocaleString()}`;
       
-      // Calculate unique tools
       const toolSet = new Set();
       parsedData.forEach(item => toolSet.add(item.tool));
       document.getElementById('uniqueToolsCount').textContent = `Unique Tools: ${toolSet.size}`;
@@ -48,45 +47,44 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
   const file = e.target.files[0];
   if (!file) return;
 
-  // Store the filename without extension
   inputFileName = file.name.replace(/\.[^/.]+$/, "");
   
   const reader = new FileReader();
   reader.onload = function (e) {
     try {
-      // Detect encoding using jschardet
-      const buffer = e.target.result;
-      const rawData = new Uint8Array(buffer);
-      const detectionResult = jschardet.detect(rawData);
-      const detectedEncoding = detectionResult.encoding || 'UTF-8';
+      // First try UTF-8 directly
+      let content = e.target.result;
       
-      // Re-read the file with the detected encoding
+      // Check for replacement character (�) which indicates encoding issues
+      if (content.includes('\ufffd')) {
+        // If UTF-8 fails, try Windows-1252 (common for NC files)
+        const reReader = new FileReader();
+        reReader.onload = function(e) {
+          processFileContent(e.target.result);
+        };
+        reReader.readAsText(file, 'windows-1252');
+      } else {
+        processFileContent(content);
+      }
+    } catch (error) {
+      console.error('File processing error:', error);
+      // Fallback to Windows-1252 if all else fails
       const reReader = new FileReader();
       reReader.onload = function(e) {
         processFileContent(e.target.result);
       };
-      reReader.onerror = function() {
-        // Fallback to UTF-8 if detection fails
-        console.warn('Failed to read with detected encoding, falling back to UTF-8');
-        reReader.readAsText(file, 'UTF-8');
-      };
-      
-      // Special handling for Windows-1252 which is often misdetected as ISO-8859-1
-      const encoding = detectedEncoding === 'ISO-8859-1' ? 'windows-1252' : detectedEncoding;
-      reReader.readAsText(file, encoding);
-    } catch (error) {
-      console.error('Encoding detection failed:', error);
-      // Fallback to direct processing
-      processFileContent(e.target.result);
+      reReader.readAsText(file, 'windows-1252');
     }
   };
-  reader.onerror = function() {
-    console.error('File reading failed');
-  };
   
-  // Read as ArrayBuffer for encoding detection
-  reader.readAsArrayBuffer(file);
+  // First try reading as UTF-8
+  reader.readAsText(file, 'UTF-8');
 });
+
+function sanitizeText(text) {
+  // Replace any remaining invalid characters while preserving special chars like Ř
+  return text.replace(/[^\x00-\xFF]/g, '').trim();
+}
 
 function processFileContent(content) {
   updateFileStats(content);
@@ -105,8 +103,8 @@ function processFileContent(content) {
 
     if (opMatch) {
       currentOperation = {
-        operation: opMatch[1].trim(),
-        tool: opMatch[2].trim(),
+        operation: sanitizeText(opMatch[1]),
+        tool: sanitizeText(opMatch[2]),
         toolNumber: '',
         rpm: '',
         feedrates: new Set()
@@ -127,6 +125,9 @@ function processFileContent(content) {
 
   renderOutput();
 }
+
+
+
 
 document.getElementById('groupToggle').addEventListener('change', function () {
   const isChecked = this.checked;

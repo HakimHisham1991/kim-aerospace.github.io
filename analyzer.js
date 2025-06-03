@@ -53,48 +53,80 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
   
   const reader = new FileReader();
   reader.onload = function (e) {
-    const content = e.target.result;
-    updateFileStats(content);
-    
-    const lines = content.split(/\r?\n/);
-    parsedData = [];
-    Object.keys(toolColors).forEach(k => delete toolColors[k]);
-
-    let currentOperation = null;
-
-    lines.forEach(line => {
-      const opMatch = line.match(/OPERATION:\s*(.+?)\s*- TOOL:\s*(.+)/);
-      const toolCallMatch = line.match(/\d+\s+TOOL CALL (\d+)\s+Z\s+S(\d+)/);
-      const feedMatch = line.match(/F(\d+(\.\d+)?)/);
-      const plungingFeedMatch = line.match(/Q206=\+(\d+)/);
-
-      if (opMatch) {
-        currentOperation = {
-          operation: opMatch[1].trim(),
-          tool: opMatch[2].trim(),
-          toolNumber: '',
-          rpm: '',
-          feedrates: new Set()
-        };
-        parsedData.push(currentOperation);
-      } else if (currentOperation && toolCallMatch) {
-        currentOperation.toolNumber = toolCallMatch[1];
-        currentOperation.rpm = toolCallMatch[2];
-      } else if (currentOperation && (feedMatch || plungingFeedMatch) && !line.includes('M128')) {
-        if (feedMatch) {
-          currentOperation.feedrates.add(feedMatch[1]);
-        }
-        if (plungingFeedMatch) {
-          currentOperation.feedrates.add(plungingFeedMatch[1]);
-        }
-      }
-    });
-
-    renderOutput();
+    try {
+      // Detect encoding using jschardet
+      const buffer = e.target.result;
+      const rawData = new Uint8Array(buffer);
+      const detectionResult = jschardet.detect(rawData);
+      const detectedEncoding = detectionResult.encoding || 'UTF-8';
+      
+      // Re-read the file with the detected encoding
+      const reReader = new FileReader();
+      reReader.onload = function(e) {
+        processFileContent(e.target.result);
+      };
+      reReader.onerror = function() {
+        // Fallback to UTF-8 if detection fails
+        console.warn('Failed to read with detected encoding, falling back to UTF-8');
+        reReader.readAsText(file, 'UTF-8');
+      };
+      
+      // Special handling for Windows-1252 which is often misdetected as ISO-8859-1
+      const encoding = detectedEncoding === 'ISO-8859-1' ? 'windows-1252' : detectedEncoding;
+      reReader.readAsText(file, encoding);
+    } catch (error) {
+      console.error('Encoding detection failed:', error);
+      // Fallback to direct processing
+      processFileContent(e.target.result);
+    }
   };
-
-  reader.readAsText(file);
+  reader.onerror = function() {
+    console.error('File reading failed');
+  };
+  
+  // Read as ArrayBuffer for encoding detection
+  reader.readAsArrayBuffer(file);
 });
+
+function processFileContent(content) {
+  updateFileStats(content);
+  
+  const lines = content.split(/\r?\n/);
+  parsedData = [];
+  Object.keys(toolColors).forEach(k => delete toolColors[k]);
+
+  let currentOperation = null;
+
+  lines.forEach(line => {
+    const opMatch = line.match(/OPERATION:\s*(.+?)\s*- TOOL:\s*(.+)/);
+    const toolCallMatch = line.match(/\d+\s+TOOL CALL (\d+)\s+Z\s+S(\d+)/);
+    const feedMatch = line.match(/F(\d+(\.\d+)?)/);
+    const plungingFeedMatch = line.match(/Q206=\+(\d+)/);
+
+    if (opMatch) {
+      currentOperation = {
+        operation: opMatch[1].trim(),
+        tool: opMatch[2].trim(),
+        toolNumber: '',
+        rpm: '',
+        feedrates: new Set()
+      };
+      parsedData.push(currentOperation);
+    } else if (currentOperation && toolCallMatch) {
+      currentOperation.toolNumber = toolCallMatch[1];
+      currentOperation.rpm = toolCallMatch[2];
+    } else if (currentOperation && (feedMatch || plungingFeedMatch) && !line.includes('M128')) {
+      if (feedMatch) {
+        currentOperation.feedrates.add(feedMatch[1]);
+      }
+      if (plungingFeedMatch) {
+        currentOperation.feedrates.add(plungingFeedMatch[1]);
+      }
+    }
+  });
+
+  renderOutput();
+}
 
 document.getElementById('groupToggle').addEventListener('change', function () {
   const isChecked = this.checked;
@@ -276,10 +308,10 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
 
   if (format === 'csv') {
     const csvContent = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-    downloadFile(csvContent, `${baseName}.csv`, 'text/csv');
+    downloadFile(csvContent, `${baseName}.csv`, 'text/csv;charset=utf-8');
   } else if (format === 'txt') {
     const txtContent = rows.map(row => row.join('\t')).join('\n');
-    downloadFile(txtContent, `${baseName}.txt`, 'text/plain');
+    downloadFile(txtContent, `${baseName}.txt`, 'text/plain;charset=utf-8');
   } else if (format === 'xlsx') {
     const ws = XLSX.utils.aoa_to_sheet(rows);
     const wb = XLSX.utils.book_new();

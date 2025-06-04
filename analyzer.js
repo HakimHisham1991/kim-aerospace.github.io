@@ -48,6 +48,7 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
   if (!file) return;
 
   inputFileName = file.name.replace(/\.[^/.]+$/, "");
+document.getElementById('fileNameDisplay').textContent = file.name; // Add this line
   
   const reader = new FileReader();
   reader.onload = function (e) {

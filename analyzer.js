@@ -105,16 +105,16 @@ function processFileContent(content) {
   let currentOperation = null;
 
   lines.forEach(line => {
-    const opMatch = line.match(/OPERATION:\s*(.+?)\s*- TOOL:\s*(.+)/);
-    const toolCallMatch = line.match(/\d+\s+TOOL CALL (\d+)\s+Z\s+S(\d+)/);
-    const rpmOnlyMatch = line.match(/TOOL CALL\s+Z\s+S(\d+)/); // New pattern for RPM-only tool calls
+    const opMatch = line.match(/\*\s*-\s*OPERATION:\s*(.+?)\s*-\s*TOOL:\s*(.+)/);
+    const toolCallMatch = line.match(/TOOL CALL\s+(\d+)\s+Z\s+S(\d+)/i);
+    const rpmOnlyMatch = line.match(/TOOL CALL\s+Z\s+S(\d+)/i); // Case insensitive match
     const feedMatch = line.match(/F(\d+(\.\d+)?)/);
     const plungingFeedMatch = line.match(/Q206=\+(\d+)/);
 
     if (opMatch) {
       currentOperation = {
-        operation: sanitizeText(opMatch[1]),
-        tool: sanitizeText(opMatch[2]),
+        operation: sanitizeText(opMatch[1].trim()),
+        tool: sanitizeText(opMatch[2].trim().replace(/~[\s\S]*/, '')), // Remove ~ and anything after it
         toolNumber: '',
         rpm: '',
         feedrates: new Set()

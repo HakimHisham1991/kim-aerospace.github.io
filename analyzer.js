@@ -94,6 +94,8 @@ function sanitizeText(text) {
   return text.replace(/[^\x00-\xFF]/g, '').trim();
 }
 
+
+
 function processFileContent(content) {
   updateFileStats(content);
   
@@ -102,6 +104,7 @@ function processFileContent(content) {
   Object.keys(toolColors).forEach(k => delete toolColors[k]);
 
   let currentOperation = null;
+  let m7Activated = false;
 
   lines.forEach(line => {
     const opMatch = line.match(/\*\s*-\s*OPERATION:\s*(.+?)\s*-\s*TOOL:\s*(.+)/);
@@ -109,6 +112,7 @@ function processFileContent(content) {
     const rpmOnlyMatch = line.match(/TOOL CALL\s+Z\s+S(\d+)/i); // Case insensitive match
     const feedMatch = line.match(/F(\d+(\.\d+)?)/);
     const plungingFeedMatch = line.match(/Q206=([+-]?\d+(?:\.\d+)?)/i); // Updated regex
+    const m7Match = line.match(/M7/i); // Check for M7 in any case
 
     if (opMatch) {
       currentOperation = {
@@ -116,8 +120,10 @@ function processFileContent(content) {
         tool: sanitizeText(opMatch[2].trim().replace(/~[\s\S]*/, '')), // Remove ~ and anything after it
         toolNumber: '',
         rpm: '',
-        feedrates: new Set()
+        feedrates: new Set(),
+        m7Coolant: false
       };
+      m7Activated = false; // Reset for new operation
       parsedData.push(currentOperation);
     } else if (currentOperation && toolCallMatch) {
       currentOperation.toolNumber = toolCallMatch[1];
@@ -132,6 +138,9 @@ function processFileContent(content) {
       if (plungingFeedMatch) {
         currentOperation.feedrates.add(plungingFeedMatch[1]);
       }
+    } else if (currentOperation && m7Match) {
+      m7Activated = true;
+      currentOperation.m7Coolant = true;
     }
   });
 
@@ -230,6 +239,7 @@ function renderGrouped(container) {
           <th>Tool Number</th>
           <th>Feedrates</th>
           <th>Spindle RPM</th>
+          <th>M7 Thru Coolant</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -246,6 +256,7 @@ function renderGrouped(container) {
         <td>${op.toolNumber}</td>
         <td>${Array.from(op.feedrates).join(', ')}</td>
         <td>${op.rpm}</td>
+        <td>${op.m7Coolant ? 'X' : ''}</td>
       `;
       tbody.appendChild(row);
     });
@@ -274,6 +285,7 @@ function renderFlat(container) {
         <th>Tool Number</th>
         <th>Feedrates</th>
         <th>Spindle RPM</th>
+        <th>M7 Thru Coolant</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -290,6 +302,7 @@ function renderFlat(container) {
       <td>${op.toolNumber}</td>
       <td>${Array.from(op.feedrates).join(', ')}</td>
       <td>${op.rpm}</td>
+      <td>${op.m7Coolant ? 'X' : ''}</td>
     `;
     tbody.appendChild(row);
   });
@@ -306,7 +319,7 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
   
   // Prepare the data rows
   const rows = [
-    ["No.", "Operation Name", "Tool Name", "Tool Number", "Feedrates", "Spindle RPM"]
+    ["No.", "Operation Name", "Tool Name", "Tool Number", "Feedrates", "Spindle RPM", "M7 Thru Coolant"]
   ];
   
   parsedData.forEach((item, index) => {
@@ -317,6 +330,7 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
       item.toolNumber,
       Array.from(item.feedrates).join(', '),
       item.rpm
+      item.m7Coolant ? 'X' : ''
     ]);
   });
 

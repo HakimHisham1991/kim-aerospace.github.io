@@ -329,7 +329,7 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
       item.tool,
       item.toolNumber,
       Array.from(item.feedrates).join(', '),
-      item.rpm
+      item.rpm,
       item.m7Coolant ? 'X' : ''
     ]);
   });

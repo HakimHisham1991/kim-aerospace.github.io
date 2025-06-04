@@ -94,7 +94,6 @@ function sanitizeText(text) {
   return text.replace(/[^\x00-\xFF]/g, '').trim();
 }
 
-
 function processFileContent(content) {
   updateFileStats(content);
   
@@ -109,7 +108,7 @@ function processFileContent(content) {
     const toolCallMatch = line.match(/TOOL CALL\s+(\d+)\s+Z\s+S(\d+)/i);
     const rpmOnlyMatch = line.match(/TOOL CALL\s+Z\s+S(\d+)/i); // Case insensitive match
     const feedMatch = line.match(/F(\d+(\.\d+)?)/);
-    const plungingFeedMatch = line.match(/Q206=\+(\d+)/);
+    const plungingFeedMatch = line.match(/Q206=([+-]?\d+(?:\.\d+)?)/i); // Updated regex
 
     if (opMatch) {
       currentOperation = {

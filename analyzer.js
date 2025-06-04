@@ -94,6 +94,7 @@ function sanitizeText(text) {
   return text.replace(/[^\x00-\xFF]/g, '').trim();
 }
 
+
 function processFileContent(content) {
   updateFileStats(content);
   
@@ -106,6 +107,7 @@ function processFileContent(content) {
   lines.forEach(line => {
     const opMatch = line.match(/OPERATION:\s*(.+?)\s*- TOOL:\s*(.+)/);
     const toolCallMatch = line.match(/\d+\s+TOOL CALL (\d+)\s+Z\s+S(\d+)/);
+    const rpmOnlyMatch = line.match(/TOOL CALL\s+Z\s+S(\d+)/); // New pattern for RPM-only tool calls
     const feedMatch = line.match(/F(\d+(\.\d+)?)/);
     const plungingFeedMatch = line.match(/Q206=\+(\d+)/);
 
@@ -121,6 +123,9 @@ function processFileContent(content) {
     } else if (currentOperation && toolCallMatch) {
       currentOperation.toolNumber = toolCallMatch[1];
       currentOperation.rpm = toolCallMatch[2];
+    } else if (currentOperation && rpmOnlyMatch) {
+      // Update RPM for current operation without changing tool number
+      currentOperation.rpm = rpmOnlyMatch[1];
     } else if (currentOperation && (feedMatch || plungingFeedMatch) && !line.includes('M128')) {
       if (feedMatch) {
         currentOperation.feedrates.add(feedMatch[1]);
@@ -133,7 +138,6 @@ function processFileContent(content) {
 
   renderOutput();
 }
-
 
 
 

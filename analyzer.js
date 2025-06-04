@@ -45,11 +45,18 @@ function updateFileStats(content) {
 
 document.getElementById('fileInput').addEventListener('change', function (e) {
   const file = e.target.files[0];
-  if (!file) return;
+  if (!file) {
+    document.getElementById('fileNameDisplay').textContent = 'No file selected';
+    return;
+  }
 
   inputFileName = file.name.replace(/\.[^/.]+$/, "");
-document.getElementById('fileNameDisplay').textContent = file.name; // Add this line
-  
+  document.getElementById('fileNameDisplay').textContent = file.name;
+
+
+
+
+
   const reader = new FileReader();
   reader.onload = function (e) {
     try {

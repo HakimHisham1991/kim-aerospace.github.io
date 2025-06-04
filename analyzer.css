@@ -92,9 +92,7 @@ th {
   font-size: 1.2rem;
   padding: 10px 15px;
   width: auto;
-  height: auto;
   margin-left: 20px;
-  transform: none;
 }
 
 .file-name-display {
@@ -105,9 +103,8 @@ th {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: block; /* Ensures the div behaves as a block element */
 }
-
-
 
 
 

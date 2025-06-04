@@ -287,6 +287,7 @@ function renderFlat(container) {
   container.appendChild(tableWrapper);
 }
 
+// [Previous code remains exactly the same until the downloadBtn event listener]
 
 document.getElementById('downloadBtn').addEventListener('click', function () {
   const format = document.getElementById('format').value;
@@ -309,22 +310,30 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
   });
 
   if (format === 'csv') {
-    // Create properly formatted CSV content
+    // Create CSV content with proper escaping
     const csvContent = rows.map(row => 
-      row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')
+      row.map(cell => `"${typeof cell === 'string' ? cell.replace(/"/g, '""') : cell}"`).join(',')
     ).join('\r\n');
     
-    // Create blob with UTF-8 BOM for Excel compatibility
-    const BOM = '\uFEFF';
-    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8' });
+    // Create blob with UTF-8 BOM
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8' });
     
-    // Create and trigger download
+    // Create download link
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
+    
+    link.href = url;
     link.download = `${baseName}.csv`;
+    
+    // Append to DOM, trigger click, then remove
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
     
   } else if (format === 'txt') {
     const txtContent = rows.map(row => row.join('\t')).join('\n');
@@ -338,22 +347,33 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
     const blob = new Blob([wbout], { type: 'application/octet-stream' });
 
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
+    
+    link.href = url;
     link.download = `${baseName}.xlsx`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
   }
 });
 
-// Keep your existing downloadFile function as a fallback
+// Modified downloadFile function with better cleanup
 function downloadFile(content, filename, mimeType) {
   const blob = new Blob([content], { type: mimeType });
   const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  
+  link.href = url;
   link.download = filename;
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
+  
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 100);
 }
-

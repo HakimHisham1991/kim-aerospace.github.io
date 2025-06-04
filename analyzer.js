@@ -289,13 +289,12 @@ function renderFlat(container) {
 
 document.getElementById('downloadBtn').addEventListener('click', function () {
   const format = document.getElementById('format').value;
-
-  // Use the input filename if available, otherwise fall back to 'nc_output'
   const baseName = inputFileName || 'nc_output';
   
   const rows = [
     ["No.", "Operation Name", "Tool Name", "Tool Number", "Spindle RPM", "Feedrates"]
   ];
+  
   parsedData.forEach((item, index) => {
     rows.push([
       index + 1,
@@ -308,11 +307,16 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
   });
 
   if (format === 'csv') {
-    const csvContent = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-    downloadFile(csvContent, `${baseName}.csv`, 'text/csv;charset=utf-8');
+    // Create CSV with proper UTF-8 BOM for Excel compatibility
+    const BOM = '\uFEFF';
+    const csvContent = BOM + rows.map(row => 
+      row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')
+    ).join('\r\n');
+    
+    downloadFile(csvContent, `${baseName}.csv`, 'text/csv; charset=utf-8');
   } else if (format === 'txt') {
     const txtContent = rows.map(row => row.join('\t')).join('\n');
-    downloadFile(txtContent, `${baseName}.txt`, 'text/plain;charset=utf-8');
+    downloadFile(txtContent, `${baseName}.txt`, 'text/plain; charset=utf-8');
   } else if (format === 'xlsx') {
     const ws = XLSX.utils.aoa_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -328,6 +332,8 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
     document.body.removeChild(link);
   }
 });
+
+
 
 function downloadFile(content, filename, mimeType) {
   const blob = new Blob([content], { type: mimeType });

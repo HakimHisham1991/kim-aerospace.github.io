@@ -287,10 +287,12 @@ function renderFlat(container) {
   container.appendChild(tableWrapper);
 }
 
+
 document.getElementById('downloadBtn').addEventListener('click', function () {
   const format = document.getElementById('format').value;
   const baseName = inputFileName || 'nc_output';
   
+  // Prepare the data rows
   const rows = [
     ["No.", "Operation Name", "Tool Name", "Tool Number", "Spindle RPM", "Feedrates"]
   ];
@@ -307,16 +309,27 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
   });
 
   if (format === 'csv') {
-    // Create CSV with proper UTF-8 BOM for Excel compatibility
-    const BOM = '\uFEFF';
-    const csvContent = BOM + rows.map(row => 
+    // Create properly formatted CSV content
+    const csvContent = rows.map(row => 
       row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')
     ).join('\r\n');
     
-    downloadFile(csvContent, `${baseName}.csv`, 'text/csv; charset=utf-8');
+    // Create blob with UTF-8 BOM for Excel compatibility
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8' });
+    
+    // Create and trigger download
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${baseName}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
   } else if (format === 'txt') {
     const txtContent = rows.map(row => row.join('\t')).join('\n');
-    downloadFile(txtContent, `${baseName}.txt`, 'text/plain; charset=utf-8');
+    downloadFile(txtContent, `${baseName}.txt`, 'text/plain;charset=utf-8');
+    
   } else if (format === 'xlsx') {
     const ws = XLSX.utils.aoa_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -333,8 +346,7 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
   }
 });
 
-
-
+// Keep your existing downloadFile function as a fallback
 function downloadFile(content, filename, mimeType) {
   const blob = new Blob([content], { type: mimeType });
   const link = document.createElement('a');
@@ -344,3 +356,4 @@ function downloadFile(content, filename, mimeType) {
   link.click();
   document.body.removeChild(link);
 }
+

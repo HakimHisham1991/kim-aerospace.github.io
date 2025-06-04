@@ -225,8 +225,8 @@ function renderGrouped(container) {
           <th>Operation Name</th>
           <th>Tool Name</th>
           <th>Tool Number</th>
-          <th>Spindle RPM</th>
           <th>Feedrates</th>
+          <th>Spindle RPM</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -241,8 +241,8 @@ function renderGrouped(container) {
         <td>${op.operation}</td>
         <td>${op.tool}</td>
         <td>${op.toolNumber}</td>
-        <td>${op.rpm}</td>
         <td>${Array.from(op.feedrates).join(', ')}</td>
+        <td>${op.rpm}</td>
       `;
       tbody.appendChild(row);
     });
@@ -269,8 +269,8 @@ function renderFlat(container) {
         <th>Operation Name</th>
         <th>Tool Name</th>
         <th>Tool Number</th>
-        <th>Spindle RPM</th>
         <th>Feedrates</th>
+        <th>Spindle RPM</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -285,8 +285,8 @@ function renderFlat(container) {
       <td>${op.operation}</td>
       <td>${op.tool}</td>
       <td>${op.toolNumber}</td>
-      <td>${op.rpm}</td>
       <td>${Array.from(op.feedrates).join(', ')}</td>
+      <td>${op.rpm}</td>
     `;
     tbody.appendChild(row);
   });
@@ -303,7 +303,7 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
   
   // Prepare the data rows
   const rows = [
-    ["No.", "Operation Name", "Tool Name", "Tool Number", "Spindle RPM", "Feedrates"]
+    ["No.", "Operation Name", "Tool Name", "Tool Number", "Feedrates", "Spindle RPM"]
   ];
   
   parsedData.forEach((item, index) => {
@@ -312,8 +312,8 @@ document.getElementById('downloadBtn').addEventListener('click', function () {
       item.operation,
       item.tool,
       item.toolNumber,
-      item.rpm,
-      Array.from(item.feedrates).join(', ')
+      Array.from(item.feedrates).join(', '),
+      item.rpm
     ]);
   });
 

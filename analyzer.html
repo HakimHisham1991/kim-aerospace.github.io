@@ -46,8 +46,16 @@
 
   <div id="groupContainer"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jschardet@3.1.4/dist/jschardet.min.js"></script>
-  <script src="analyzer.js"></script>
+<!-- Add these two lines before your analyzer.js script -->
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
+<!-- Keep your existing scripts -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jschardet@3.1.4/dist/jschardet.min.js"></script>
+<script src="analyzer.js"></script>
+
+
+  
 </body>
 </html>

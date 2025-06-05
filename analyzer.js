@@ -3,6 +3,11 @@ const toolColors = {};
 const colorPalette = ['#fce4ec', '#e3f2fd', '#e8f5e9', '#fff3e0', '#ede7f6', '#f3e5f5', '#f1f8e9', '#e0f7fa', '#f9fbe7', '#fbe9e7'];
 let inputFileName = '';
 
+// Excel width helper function
+function excelWidth(jsWidth) {
+  return jsWidth + 0.71; // Compensate for Excel's internal padding
+}
+
 function getToolColor(toolName) {
   if (!toolColors[toolName]) {
     const color = colorPalette[Object.keys(toolColors).length % colorPalette.length];
@@ -60,12 +65,12 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
   const reader = new FileReader();
   reader.onload = function (e) {
     try {
-      // First try UTF-8 directly
+								 
       let content = e.target.result;
       
-      // Check for replacement character (�) which indicates encoding issues
+																			  
       if (content.includes('\ufffd')) {
-        // If UTF-8 fails, try Windows-1252 (common for NC files)
+																 
         const reReader = new FileReader();
         reReader.onload = function(e) {
           processFileContent(e.target.result);
@@ -76,7 +81,7 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
       }
     } catch (error) {
       console.error('File processing error:', error);
-      // Fallback to Windows-1252 if all else fails
+												   
       const reReader = new FileReader();
       reReader.onload = function(e) {
         processFileContent(e.target.result);
@@ -85,12 +90,12 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
     }
   };
   
-  // First try reading as UTF-8
+							   
   reader.readAsText(file, 'UTF-8');
 });
 
 function sanitizeText(text) {
-  // Replace any remaining invalid characters while preserving special chars like Ř
+																					
   return text.replace(/[^\x00-\xFF]/g, '').trim();
 }
 
@@ -109,27 +114,27 @@ function processFileContent(content) {
   lines.forEach(line => {
     const opMatch = line.match(/\*\s*-\s*OPERATION:\s*(.+?)\s*-\s*TOOL:\s*(.+)/);
     const toolCallMatch = line.match(/TOOL CALL\s+(\d+)\s+Z\s+S(\d+)/i);
-    const rpmOnlyMatch = line.match(/TOOL CALL\s+Z\s+S(\d+)/i); // Case insensitive match
+    const rpmOnlyMatch = line.match(/TOOL CALL\s+Z\s+S(\d+)/i);
     const feedMatch = line.match(/F(\d+(\.\d+)?)/);
-    const plungingFeedMatch = line.match(/Q206=([+-]?\d+(?:\.\d+)?)/i); // Updated regex
-    const m7Match = line.match(/M7/i); // Check for M7 in any case
+    const plungingFeedMatch = line.match(/Q206=([+-]?\d+(?:\.\d+)?)/i);
+    const m7Match = line.match(/M7/i);
 
     if (opMatch) {
       currentOperation = {
         operation: sanitizeText(opMatch[1].trim()),
-        tool: sanitizeText(opMatch[2].trim().replace(/~[\s\S]*/, '')), // Remove ~ and anything after it
+        tool: sanitizeText(opMatch[2].trim().replace(/~[\s\S]*/, '')),
         toolNumber: '',
         rpm: '',
         feedrates: new Set(),
         m7Coolant: false
       };
-      m7Activated = false; // Reset for new operation
+      m7Activated = false;
       parsedData.push(currentOperation);
     } else if (currentOperation && toolCallMatch) {
       currentOperation.toolNumber = toolCallMatch[1];
       currentOperation.rpm = toolCallMatch[2];
     } else if (currentOperation && rpmOnlyMatch) {
-      // Update RPM for current operation without changing tool number
+																	  
       currentOperation.rpm = rpmOnlyMatch[1];
     } else if (currentOperation && (feedMatch || plungingFeedMatch) && !line.includes('M128')) {
       if (feedMatch) {
@@ -311,7 +316,7 @@ function renderFlat(container) {
   container.appendChild(tableWrapper);
 }
 
-// [Previous code remains exactly the same until the downloadBtn event listener]
+																				
 
 
 
@@ -319,7 +324,7 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
   const format = document.getElementById('format').value;
   const baseName = inputFileName || 'nc_output';
   
-  // Prepare the data rows
+						  
   const header = ["No.", "Operation Name", "Tool Name", "Tool Number", "Feedrates", "Spindle RPM", "M7 Thru Coolant"];
   const rows = [];
   
@@ -338,26 +343,26 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
 
 
   if (format === 'csv') {
-    // Create CSV content with proper escaping
+											  
     const csvContent = rows.map(row => 
       row.map(cell => `"${typeof cell === 'string' ? cell.replace(/"/g, '""') : cell}"`).join(',')
     ).join('\r\n');
     
-    // Create blob with UTF-8 BOM
+								 
     const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8' });
-    
-    // Create download link
+	
+						   
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     
     link.href = url;
     link.download = `${baseName}.csv`;
-    
-    // Append to DOM, trigger click, then remove
+	
+												
     document.body.appendChild(link);
     link.click();
     
-    // Clean up
+			   
     setTimeout(() => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
@@ -366,25 +371,25 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
   } else if (format === 'txt') {
     const txtContent = rows.map(row => row.join('\t')).join('\n');
     downloadFile(txtContent, `${baseName}.txt`, 'text/plain;charset=utf-8');
-	
-	
-	
-	
+    
+ 
+ 
+ 
   } else if (format === 'xlsx') {
     try {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Results');
       
-      // Add header row with styling
+									
       worksheet.addRow(header);
       
-      // Style the header row
+							 
       const headerRow = worksheet.getRow(1);
       headerRow.eachCell((cell) => {
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FFC5D9F1' } // RGB 197,217,241
+          fgColor: { argb: 'FFC5D9F1' }
         };
         cell.font = {
           bold: true
@@ -401,12 +406,12 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
         };
       });
       
-      // Add data rows
+					  
       rows.forEach(row => worksheet.addRow(row));
       
-      // Style data rows
+						
       worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-        if (rowNumber > 1) { // Skip header row
+        if (rowNumber > 1) {
           row.eachCell((cell) => {
             cell.alignment = {
               vertical: 'middle',
@@ -422,29 +427,29 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
         }
       });
       
-      // Set column widths
+      // Modified column widths using excelWidth function
       worksheet.columns = [
-        { width: 5 },    // No.
-        { width: 30 },   // Operation Name
-        { width: 20 },   // Tool Name
-        { width: 12 },   // Tool Number
-        { width: 15 },   // Feedrates
-        { width: 12 },   // Spindle RPM
-        { width: 12 }    // M7 Thru Coolant
+        { width: excelWidth(10) },    // No.
+        { width: excelWidth(40) },  // Operation Name
+        { width: excelWidth(30) },  // Tool Name
+        { width: excelWidth(10) },  // Tool Number
+        { width: excelWidth(15) },  // Feedrates
+        { width: excelWidth(10) },  // Spindle RPM
+        { width: excelWidth(10) }   // M7 Thru Coolant
       ];
       
-      // Add filters
+					
       worksheet.autoFilter = {
         from: 'A1',
         to: 'G1'
       };
       
-      // Freeze header row
+						  
       worksheet.views = [
         { state: 'frozen', ySplit: 1 }
       ];
       
-      // Generate the Excel file
+								
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       saveAs(blob, `${baseName}.xlsx`);
@@ -459,7 +464,7 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
 
 
 
-// Modified downloadFile function with better cleanup
+													 
 function downloadFile(content, filename, mimeType) {
   const blob = new Blob([content], { type: mimeType });
   const link = document.createElement('a');

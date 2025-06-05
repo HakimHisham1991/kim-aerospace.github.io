@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cutting Speed Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        .calculator-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+        }
+        
+        .legend {
+            width: 200px;
+            margin-right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .legend img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        
+        .calculator-content {
+            flex: 1;
+        }
+        
+        h1 {
+            color: #0066cc;
+            font-size: 24px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        
+        .formula-box {
+            background-color: #f9f9f9;
+            border-left: 4px solid #0066cc;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .formula {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .input-group {
+            margin: 15px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        .unit {
+            color: #666;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+        
+        button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #0055aa;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e6f2ff;
+            border-radius: 4px;
+            font-size: 18px;
+            display: none;
+        }
+        
+        .note {
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="legend">
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cutting Speed Diagram" id="formula-image">
+            <div>\[vc = \frac{\pi \cdot D i \cdot n}{1000} \, (m/min)\]</div>
+        </div>
+        
+        <div class="calculator-content">
+            <h1>Cutting Speed</h1>
+            
+            <div class="formula-box">
+                <div>Cutting Speed (vc)</div>
+                <div class="formula">vc = π × Dm × n ÷ 1000</div>
+                <div>
+                    vc : Cutting Speed (m/min)<br>
+                    Dm : Workpiece Diameter (mm)<br>
+                    n : Main Axis Spindle Speed (min<sup>-1</sup>)
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="diameter">Workpiece Diameter (Dm)</label>
+                <input type="number" id="diameter" step="0.01" min="0.01">
+                <span class="unit">mm</span>
+            </div>
+            
+            <div class="input-group">
+                <label for="speed">Main Axis Spindle Speed (n)</label>
+                <input type="number" id="speed" min="1">
+                <span class="unit">min<sup>-1</sup></span>
+            </div>
+            
+            <button onclick="calculateCuttingSpeed()">Calculate Cutting Speed (vc)</button>
+            
+            <div id="result" class="result">
+                Cutting Speed (vc): <span id="vc-result">0</span> m/min
+            </div>
+            
+            <div class="note">
+                * π (Pi) = 3.141592653589793<br>
+                * This calculator is for reference only. Actual results may vary based on cutting conditions.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateCuttingSpeed() {
+            // Get input values
+            const diameter = parseFloat(document.getElementById('diameter').value);
+            const speed = parseFloat(document.getElementById('speed').value);
+            
+            // Validate inputs
+            if (isNaN(diameter) || isNaN(speed) || diameter <= 0 || speed <= 0) {
+                alert('Please enter valid positive numbers for all fields');
+                return;
+            }
+            
+            // Calculate cutting speed
+            const vc = (Math.PI * diameter * speed) / 1000;
+            
+            // Display result with 2 decimal places
+            document.getElementById('vc-result').textContent = vc.toFixed(2);
+            document.getElementById('result').style.display = 'block';
+        }
+
+        // Since we don't have the actual image, I've included a placeholder
+        // In a real implementation, you would replace this with the actual image
+        document.getElementById('formula-image').alt = "Cutting Speed Diagram";
+        document.getElementById('formula-image').title = "Cutting Speed Diagram";
+    </script>
+</body>
+</html>

@@ -23,18 +23,24 @@
             display: flex;
         }
         
-        .legend {
+        .formula-side {
             width: 200px;
             margin-right: 20px;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
         }
         
-        .legend img {
-            max-width: 100%;
-            height: auto;
-            margin-bottom: 10px;
+        .formula-display {
+            font-size: 18px;
+            text-align: center;
+            font-family: "Times New Roman", serif;
+            font-style: italic;
+            margin: 20px 0;
         }
         
         .calculator-content {
@@ -124,27 +130,41 @@
             color: #666;
             margin-top: 20px;
         }
+        
+        .frac {
+            display: inline-block;
+            position: relative;
+            vertical-align: middle;
+            letter-spacing: 0.001em;
+            text-align: center;
+        }
+        .frac > span {
+            display: block;
+            padding: 0.1em;
+        }
+        .frac span.bottom {
+            border-top: thin solid black;
+        }
+        .frac span.symbol {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="calculator-container">
-        <div class="legend">
-            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cutting Speed Diagram" id="formula-image">
-            <div>\[vc = \frac{\pi \cdot D i \cdot n}{1000} \, (m/min)\]</div>
-        </div>
-        
-        <div class="calculator-content">
-            <h1>Cutting Speed</h1>
-            
-            <div class="formula-box">
-                <div>Cutting Speed (vc)</div>
-                <div class="formula">vc = π × Dm × n ÷ 1000</div>
-                <div>
+        <div class="formula-side">
+            <div class="formula-display">
+                \[vc = \frac{\pi \cdot Dm \cdot n}{1000} \, (m/min)\]
+                <div style="margin-top: 20px; font-size: 16px;">
                     vc : Cutting Speed (m/min)<br>
                     Dm : Workpiece Diameter (mm)<br>
                     n : Main Axis Spindle Speed (min<sup>-1</sup>)
                 </div>
             </div>
+        </div>
+        
+        <div class="calculator-content">
+            <h1>Cutting Speed Calculator</h1>
             
             <div class="input-group">
                 <label for="diameter">Workpiece Diameter (Dm)</label>
@@ -190,11 +210,6 @@
             document.getElementById('vc-result').textContent = vc.toFixed(2);
             document.getElementById('result').style.display = 'block';
         }
-
-        // Since we don't have the actual image, I've included a placeholder
-        // In a real implementation, you would replace this with the actual image
-        document.getElementById('formula-image').alt = "Cutting Speed Diagram";
-        document.getElementById('formula-image').title = "Cutting Speed Diagram";
     </script>
 </body>
 </html>

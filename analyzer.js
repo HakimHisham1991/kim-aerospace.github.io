@@ -374,29 +374,29 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
     
  
  
- 
-  } else if (format === 'xlsx') {
+ else if (format === 'xlsx') {
     try {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Results');
       
-									
+      // Add header row
       worksheet.addRow(header);
       
-							 
+      // Style the header row with wrapText enabled
       const headerRow = worksheet.getRow(1);
       headerRow.eachCell((cell) => {
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FFC5D9F1' }
+          fgColor: { argb: 'FFC5D9F1' } // RGB 197,217,241
         };
         cell.font = {
           bold: true
         };
         cell.alignment = {
           vertical: 'middle',
-          horizontal: 'center'
+          horizontal: 'center',
+          wrapText: true // This enables text wrapping
         };
         cell.border = {
           top: { style: 'thin' },
@@ -406,12 +406,15 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
         };
       });
       
-					  
+      // Set row height for header (optional but recommended)
+      headerRow.height = 30; // Adjust as needed
+      
+      // Add data rows
       rows.forEach(row => worksheet.addRow(row));
       
-						
+      // Style data rows (without wrapText)
       worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-        if (rowNumber > 1) {
+        if (rowNumber > 1) { // Skip header row
           row.eachCell((cell) => {
             cell.alignment = {
               vertical: 'middle',
@@ -427,29 +430,29 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
         }
       });
       
-      // Modified column widths using excelWidth function
+      // Set column widths (using your excelWidth function)
       worksheet.columns = [
-        { width: excelWidth(10) },    // No.
-        { width: excelWidth(40) },  // Operation Name
-        { width: excelWidth(30) },  // Tool Name
-        { width: excelWidth(10) },  // Tool Number
-        { width: excelWidth(15) },  // Feedrates
-        { width: excelWidth(10) },  // Spindle RPM
-        { width: excelWidth(10) }   // M7 Thru Coolant
+        { width: excelWidth(5) },    // No.
+        { width: excelWidth(30) },   // Operation Name
+        { width: excelWidth(20) },   // Tool Name
+        { width: excelWidth(12) },   // Tool Number
+        { width: excelWidth(15) },   // Feedrates
+        { width: excelWidth(12) },   // Spindle RPM
+        { width: excelWidth(12) }    // M7 Thru Coolant
       ];
       
-					
+      // Add filters
       worksheet.autoFilter = {
         from: 'A1',
         to: 'G1'
       };
       
-						  
+      // Freeze header row
       worksheet.views = [
         { state: 'frozen', ySplit: 1 }
       ];
       
-								
+      // Generate the Excel file
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       saveAs(blob, `${baseName}.xlsx`);
@@ -458,7 +461,11 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
       console.error('Error generating Excel file:', error);
       alert('Error generating Excel file. See console for details.');
     }
-  }
+}
+
+
+
+	
 });
 
 

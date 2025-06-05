@@ -318,13 +318,10 @@ function renderFlat(container) {
 
 																				
 
-
-
 document.getElementById('downloadBtn').addEventListener('click', async function () {
   const format = document.getElementById('format').value;
   const baseName = inputFileName || 'nc_output';
   
-						  
   const header = ["No.", "Operation Name", "Tool Name", "Tool Number", "Feedrates", "Spindle RPM", "M7 Thru Coolant"];
   const rows = [];
   
@@ -340,29 +337,20 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
     ]);
   });
 
-
-
   if (format === 'csv') {
-											  
     const csvContent = rows.map(row => 
       row.map(cell => `"${typeof cell === 'string' ? cell.replace(/"/g, '""') : cell}"`).join(',')
     ).join('\r\n');
     
-								 
     const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8' });
-	
-						   
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     
     link.href = url;
     link.download = `${baseName}.csv`;
-	
-												
     document.body.appendChild(link);
     link.click();
     
-			   
     setTimeout(() => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
@@ -372,9 +360,7 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
     const txtContent = rows.map(row => row.join('\t')).join('\n');
     downloadFile(txtContent, `${baseName}.txt`, 'text/plain;charset=utf-8');
     
- 
- 
- else if (format === 'xlsx') {
+  } else if (format === 'xlsx') {
     try {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Results');
@@ -388,7 +374,7 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FFC5D9F1' } // RGB 197,217,241
+          fgColor: { argb: 'FFC5D9F1' }
         };
         cell.font = {
           bold: true
@@ -396,7 +382,7 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
         cell.alignment = {
           vertical: 'middle',
           horizontal: 'center',
-          wrapText: true // This enables text wrapping
+          wrapText: true
         };
         cell.border = {
           top: { style: 'thin' },
@@ -406,15 +392,15 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
         };
       });
       
-      // Set row height for header (optional but recommended)
-      headerRow.height = 30; // Adjust as needed
+      // Set row height for header
+      headerRow.height = 30;
       
       // Add data rows
       rows.forEach(row => worksheet.addRow(row));
       
-      // Style data rows (without wrapText)
+      // Style data rows
       worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-        if (rowNumber > 1) { // Skip header row
+        if (rowNumber > 1) {
           row.eachCell((cell) => {
             cell.alignment = {
               vertical: 'middle',
@@ -430,15 +416,15 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
         }
       });
       
-      // Set column widths (using your excelWidth function)
+      // Set column widths
       worksheet.columns = [
-        { width: excelWidth(5) },    // No.
-        { width: excelWidth(30) },   // Operation Name
-        { width: excelWidth(20) },   // Tool Name
-        { width: excelWidth(12) },   // Tool Number
-        { width: excelWidth(15) },   // Feedrates
-        { width: excelWidth(12) },   // Spindle RPM
-        { width: excelWidth(12) }    // M7 Thru Coolant
+        { width: excelWidth(5) },
+        { width: excelWidth(30) },
+        { width: excelWidth(20) },
+        { width: excelWidth(12) },
+        { width: excelWidth(15) },
+        { width: excelWidth(12) },
+        { width: excelWidth(12) }
       ];
       
       // Add filters
@@ -461,13 +447,8 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
       console.error('Error generating Excel file:', error);
       alert('Error generating Excel file. See console for details.');
     }
-}
-
-
-
-	
+  }
 });
-
 
 
 

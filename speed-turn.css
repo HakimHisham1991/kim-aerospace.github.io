@@ -46,7 +46,6 @@ body {
     margin: 20px 0;
 }
 
-
 .variable-defs {
     margin-top: 20px;
     font-size: 16px;
@@ -132,27 +131,6 @@ button:active {
     line-height: 1.5;
 }
 
-.frac {
-    display: inline-block;
-    position: relative;
-    vertical-align: middle;
-    letter-spacing: 0.001em;
-    text-align: center;
-}
-
-.frac > span {
-    display: block;
-    padding: 0.1em;
-}
-
-.frac span.bottom {
-    border-top: thin solid black;
-}
-
-.frac span.symbol {
-    display: none;
-}
-
 @media (max-width: 768px) {
     .calculator-container {
         flex-direction: column;
@@ -163,4 +141,34 @@ button:active {
         margin-right: 0;
         margin-bottom: 20px;
     }
+}
+
+.radio-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.radio-group input[type="radio"] {
+    margin-right: 8px;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+input[type="number"]:disabled {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+
+.formula-image {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.formula-image img {
+    max-height: 150px;
+    border-radius: 4px;
 }

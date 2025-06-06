@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateInputStates() {
         if (calcNRadio.checked) {
             // Calculating n (spindle speed) - disable n input
-            // speedInput.disabled = true;
+            speedInput.disabled = false;
             diameterInput.disabled = false;
             vcInput.disabled = true;
         } 

@@ -142,3 +142,27 @@ button:active {
         margin-bottom: 20px;
     }
 }
+
+
+/* Previous CSS remains the same, add these new styles at the end */
+
+.radio-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.radio-group input[type="radio"] {
+    margin-right: 8px;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+input[type="number"]:disabled {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+

@@ -43,10 +43,9 @@ body {
 .formula-display {
     font-size: 18px;
     text-align: center;
-    font-family: "Times New Roman", serif;
-    font-style: italic;
     margin: 20px 0;
 }
+
 
 .variable-defs {
     margin-top: 20px;

@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate turning cutting speed (vc) for machining operations">
     <title>Turning Cutting Speed Calculator</title>
-  
-
-<link rel="stylesheet" href="speed-turn.css">
-
+    <link rel="stylesheet" href="speed-turn.css">
 </head>
 <body>
-
-  <h1>Turning Cutting Speed Calculator</h1>
-  <p>Rev: 002</p>
+    <div class="header">
+        <h1>Turning Cutting Speed Calculator</h1>
+        <p class="revision">Rev: 003</p>
+    </div>
 
     <div class="calculator-container">
         <div class="formula-side">
             <div class="formula-display">
                 \[vc = \frac{\pi \cdot Dm \cdot n}{1000} \, (m/min)\]
-                <div style="margin-top: 20px; font-size: 16px;">
+                <div class="variable-defs">
                     vc : Cutting Speed (m/min)<br>
                     Dm : Workpiece Diameter (mm)<br>
                     n : Main Axis Spindle Speed (min<sup>-1</sup>)
@@ -27,21 +26,19 @@
         </div>
         
         <div class="calculator-content">
-            <h1>Cutting Speed Calculator</h1>
-            
             <div class="input-group">
                 <label for="diameter">Workpiece Diameter (Dm)</label>
-                <input type="number" id="diameter" step="0.01" min="0.01">
+                <input type="number" id="diameter" step="0.01" min="0.01" placeholder="Enter diameter">
                 <span class="unit">mm</span>
             </div>
             
             <div class="input-group">
                 <label for="speed">Main Axis Spindle Speed (n)</label>
-                <input type="number" id="speed" min="1">
+                <input type="number" id="speed" min="1" placeholder="Enter speed">
                 <span class="unit">min<sup>-1</sup></span>
             </div>
             
-            <button onclick="calculateCuttingSpeed()">Calculate Cutting Speed (vc)</button>
+            <button id="calculate-btn">Calculate Cutting Speed (vc)</button>
             
             <div id="result" class="result">
                 Cutting Speed (vc): <span id="vc-result">0</span> m/min
@@ -54,8 +51,6 @@
         </div>
     </div>
 
-  <script src="speed-turn.js"></script>
-
-
+    <script src="speed-turn.js"></script>
 </body>
 </html>

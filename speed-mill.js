@@ -8,30 +8,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const calcDRadio = document.getElementById('calc-diameter');
     const calcVcRadio = document.getElementById('calc-vc');
     
+    // Function to update input states
+    function updateInputStates() {
+        if (calcNRadio.checked) {
+            // Calculating n (spindle speed) - disable n input
+            speedInput.disabled = true;
+            diameterInput.disabled = false;
+            vcInput.disabled = false;
+        } 
+        else if (calcDRadio.checked) {
+            // Calculating D (diameter) - disable D input
+            speedInput.disabled = false;
+            diameterInput.disabled = true;
+            vcInput.disabled = false;
+        } 
+        else if (calcVcRadio.checked) {
+            // Calculating vc (cutting speed) - disable vc input
+            speedInput.disabled = false;
+            diameterInput.disabled = false;
+            vcInput.disabled = true;
+        }
+    }
+    
     // Add event listeners
     calculateBtn.addEventListener('click', calculate);
     
-    // Enable/disable inputs based on radio selection
-    calcNRadio.addEventListener('change', function() {
-        speedInput.disabled = true;
-        diameterInput.disabled = false;
-        vcInput.disabled = false;
-    });
+    // Update input states when radio selection changes
+    calcNRadio.addEventListener('change', updateInputStates);
+    calcDRadio.addEventListener('change', updateInputStates);
+    calcVcRadio.addEventListener('change', updateInputStates);
     
-    calcDRadio.addEventListener('change', function() {
-        speedInput.disabled = false;
-        diameterInput.disabled = true;
-        vcInput.disabled = false;
-    });
-    
-    calcVcRadio.addEventListener('change', function() {
-        speedInput.disabled = false;
-        diameterInput.disabled = false;
-        vcInput.disabled = true;
-    });
-    
-    // Initialize with n calculation selected
-    speedInput.disabled = true;
+    // Initialize input states
+    updateInputStates();
     
     // Allow calculation on Enter key press
     [diameterInput, speedInput, vcInput].forEach(input => {

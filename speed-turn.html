@@ -6,17 +6,20 @@
     <meta name="description" content="Calculate turning cutting speed (vc) for machining operations">
     <title>Turning Cutting Speed Calculator</title>
     <link rel="stylesheet" href="speed-turn.css">
+    <!-- Add MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <div class="header">
         <h1>Turning Cutting Speed Calculator</h1>
-        <p class="revision">Rev: 003</p>
+        <p class="revision">Rev: 004</p>
     </div>
 
     <div class="calculator-container">
         <div class="formula-side">
             <div class="formula-display">
-                \[vc = \frac{\pi \cdot Dm \cdot n}{1000} \, (m/min)\]
+                \[ vc = \frac{\pi \cdot Dm \cdot n}{1000} \, (m/min) \]
                 <div class="variable-defs">
                     vc : Cutting Speed (m/min)<br>
                     Dm : Workpiece Diameter (mm)<br>

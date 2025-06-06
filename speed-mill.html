@@ -13,7 +13,7 @@
 <body>
     <div class="header">
         <h1>Milling Cutting Speed Calculator</h1>
-        <p class="revision">Rev: 001</p>
+        <p class="revision">Rev: 003</p>
     </div>
 
     <div class="calculator-container">
@@ -30,22 +30,39 @@
         
         <div class="calculator-content">
             <div class="input-group">
-                <label for="diameter">Cutter Diameter (D)</label>
-                <input type="number" id="diameter" step="0.01" min="0.01" placeholder="Enter diameter">
-                <span class="unit">mm</span>
+                <div class="radio-group">
+                    <input type="radio" id="calc-n" name="calc-type" checked>
+                    <label for="calc-n">Calculate n</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="speed" min="1" placeholder="Enter speed" disabled>
+                    <span class="unit">min<sup>-1</sup></span>
+                </div>
             </div>
             
             <div class="input-group">
-                <label for="speed">Main Axis Spindle Speed (n)</label>
-                <input type="number" id="speed" min="1" placeholder="Enter speed">
-                <span class="unit">min<sup>-1</sup></span>
+                <div class="radio-group">
+                    <input type="radio" id="calc-diameter" name="calc-type">
+                    <label for="calc-diameter">Calculate D</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="diameter" step="0.01" min="0.01" placeholder="Enter diameter">
+                    <span class="unit">mm</span>
+                </div>
             </div>
             
-            <button id="calculate-btn">Calculate Cutting Speed (vc)</button>
-            
-            <div id="result" class="result">
-                Cutting Speed (vc): <span id="vc-result">0</span> m/min
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-vc" name="calc-type">
+                    <label for="calc-vc">Calculate vc</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="vc" step="0.01" min="0.01" placeholder="Enter cutting speed">
+                    <span class="unit">m/min</span>
+                </div>
             </div>
+            
+            <button id="calculate-btn">Calculate</button>
             
             <div class="note">
                 * π (Pi) = 3.141592653589793<br>

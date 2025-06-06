@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate milling cutting speed (vc) for machining operations">
+    <title>Milling Cutting Speed Calculator</title>
+    <link rel="stylesheet" href="speed-mill.css">
+    <!-- MathJax for formula rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Milling Cutting Speed Calculator</h1>
+        <p class="revision">Rev: 001</p>
+    </div>
+
+    <div class="calculator-container">
+        <div class="formula-side">
+            <div class="formula-display">
+                \[ vc = \frac{\pi \cdot D \cdot n}{1000} \, (m/min) \]
+                <div class="variable-defs">
+                    vc : Cutting Speed (m/min)<br>
+                    D : Cutter Diameter (mm)<br>
+                    n : Main Axis Spindle Speed (min<sup>-1</sup>)
+                </div>
+            </div>
+        </div>
+        
+        <div class="calculator-content">
+            <div class="input-group">
+                <label for="diameter">Cutter Diameter (D)</label>
+                <input type="number" id="diameter" step="0.01" min="0.01" placeholder="Enter diameter">
+                <span class="unit">mm</span>
+            </div>
+            
+            <div class="input-group">
+                <label for="speed">Main Axis Spindle Speed (n)</label>
+                <input type="number" id="speed" min="1" placeholder="Enter speed">
+                <span class="unit">min<sup>-1</sup></span>
+            </div>
+            
+            <button id="calculate-btn">Calculate Cutting Speed (vc)</button>
+            
+            <div id="result" class="result">
+                Cutting Speed (vc): <span id="vc-result">0</span> m/min
+            </div>
+            
+            <div class="note">
+                * π (Pi) = 3.141592653589793<br>
+                * This calculator is for reference only. Actual results may vary based on cutting conditions.
+            </div>
+        </div>
+    </div>
+
+    <script src="speed-mill.js"></script>
+</body>
+</html>

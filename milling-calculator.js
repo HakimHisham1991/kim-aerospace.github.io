@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please enter valid positive numbers for Diameter and Cutting Speed');
                 return false;
             }
-            const n = (vc * 1000) / (Math.PI * diameter);
+            const n = (vc * 1000) / (3.14 * diameter);
             speedInput.value = Math.round(n);
             return true;
         } 

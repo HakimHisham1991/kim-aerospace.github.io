@@ -11,22 +11,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to update input states
     function updateInputStates() {
         if (calcNRadio.checked) {
-            // Calculating n (spindle speed) - enable n input, disable others
-            speedInput.disabled = false;  // Changed from true to false
-            diameterInput.disabled = true;
-            vcInput.disabled = true;
-        } 
-        else if (calcDRadio.checked) {
-            // Calculating D (diameter) - enable D input, disable others
+            // Calculating n (spindle speed) - disable n input
             speedInput.disabled = true;
             diameterInput.disabled = false;
-            vcInput.disabled = true;
+            vcInput.disabled = false;
         } 
-        else if (calcVcRadio.checked) {
-            // Calculating vc (cutting speed) - enable vc input, disable others
-            speedInput.disabled = true;
+        else if (calcDRadio.checked) {
+            // Calculating D (diameter) - disable D input
+            speedInput.disabled = false;
             diameterInput.disabled = true;
             vcInput.disabled = false;
+        } 
+        else if (calcVcRadio.checked) {
+            // Calculating vc (cutting speed) - disable vc input
+            speedInput.disabled = false;
+            diameterInput.disabled = false;
+            vcInput.disabled = true;
         }
     }
     
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const calculatedVc = (3.14 * diameter * speed) / 1000;
-            vcInput.value = Math.round(calculatedVc);
+            vcInput.value = calculatedVc.toFixed(2);
         }
     }
 });

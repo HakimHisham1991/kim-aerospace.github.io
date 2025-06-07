@@ -11,22 +11,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to update input states
     function updateInputStates() {
         if (calcNRadio.checked) {
-            // Calculating n (spindle speed) - disable n input
-            speedInput.disabled = true;  // Changed from false to true
-            diameterInput.disabled = false;
-            vcInput.disabled = false;   // Changed from true to false
+            // Calculating n (spindle speed) - enable n input, disable others
+            speedInput.disabled = false;  // Changed from true to false
+            diameterInput.disabled = true;
+            vcInput.disabled = true;
         } 
         else if (calcDRadio.checked) {
-            // Calculating D (diameter) - disable D input
-            speedInput.disabled = false;
-            diameterInput.disabled = true;
-            vcInput.disabled = false;
-        } 
-        else if (calcVcRadio.checked) {
-            // Calculating vc (cutting speed) - disable vc input
-            speedInput.disabled = false;
+            // Calculating D (diameter) - enable D input, disable others
+            speedInput.disabled = true;
             diameterInput.disabled = false;
             vcInput.disabled = true;
+        } 
+        else if (calcVcRadio.checked) {
+            // Calculating vc (cutting speed) - enable vc input, disable others
+            speedInput.disabled = true;
+            diameterInput.disabled = true;
+            vcInput.disabled = false;
         }
     }
     
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please enter valid positive numbers for Speed and Cutting Speed');
                 return;
             }
-            const D = (vc * 1000) / 3.14 * speed);
+            const D = (vc * 1000) / (3.14 * speed);
             diameterInput.value = D.toFixed(2);
         } 
         else if (calcVcRadio.checked) {
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const calculatedVc = (3.14 * diameter * speed) / 1000;
-            vcInput.value = calculatedVc.toFixed(2);
+            vcInput.value = Math.round(calculatedVc);
         }
     }
 });

@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please enter valid positive numbers for Diameter and Cutting Speed');
                 return;
             }
-            const n = (vc * 1000) / (Math.PI * diameter);
+            const n = (vc * 1000) / (3.14 * diameter);
             speedInput.value = Math.round(n);
         } 
         else if (calcDRadio.checked) {
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please enter valid positive numbers for Speed and Cutting Speed');
                 return;
             }
-            const D = (vc * 1000) / (Math.PI * speed);
+            const D = (vc * 1000) / (3.14 * speed);
             diameterInput.value = D.toFixed(2);
         } 
         else if (calcVcRadio.checked) {
@@ -81,8 +81,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please enter valid positive numbers for Diameter and Speed');
                 return;
             }
-            const calculatedVc = (Math.PI * diameter * speed) / 1000;
-            vcInput.value = calculatedVc.toFixed(2);
+            const calculatedVc = (3.14 * diameter * speed) / 1000;
+            vcInput.value = Math.round(calculatedVc);
         }
     }
 });

@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const calculatedFz = vf / (z * n);
-            fzInput.value = calculatedFz.toFixed(3);
+            fzInput.value = calculatedFz.toFixed(6);
         }
     }
 });

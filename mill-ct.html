@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate cutting time (Tc) for machining operations">
+    <title>Cutting Time Calculator</title>
+    <link rel="stylesheet" href="mill-ct.css">
+    <!-- MathJax for formula rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Cutting Time Calculator</h1>
+        <p class="revision">Rev: 001</p>
+    </div>
+
+    <div class="calculator-container">
+        <div class="formula-side">
+            <div class="formula-image">
+                <img src="mill-ct.gif" alt="Cutting Time Diagram" style="max-width: 100%; height: auto;">
+            </div>
+            <div class="formula-display">
+                \[ Tc = \frac{L}{vf} \, (min) \]
+                <div class="variable-defs">
+                    Tc : Cutting Time (min)<br>
+                    L : Cutting Length (mm)<br>
+                    vf : Feed Rate (mm/min)
+                </div>
+            </div>
+        </div>
+        
+        <div class="calculator-content">
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-l" name="calc-type">
+                    <label for="calc-l">Calculate L</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="length" min="1" placeholder="Enter length" disabled>
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-vf" name="calc-type">
+                    <label for="calc-vf">Calculate vf</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="vf" step="0.01" min="0.01" placeholder="Enter feed rate">
+                    <span class="unit">mm/min</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-tc" name="calc-type" checked>
+                    <label for="calc-tc">Calculate Tc</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="tc" step="0.01" min="0.01" placeholder="Enter cutting time">
+                    <span class="unit">min</span>
+                </div>
+            </div>
+            
+            <button id="calculate-btn">Calculate</button>
+            
+            <div class="note">
+                * This calculator is for reference only. Actual results may vary based on cutting conditions.
+            </div>
+        </div>
+    </div>
+
+    <script src="mill-ct.js"></script>
+</body>
+</html>

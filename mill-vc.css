@@ -143,9 +143,6 @@ button:active {
     }
 }
 
-
-/* Previous CSS remains the same, add these new styles at the end */
-
 .radio-group {
     display: flex;
     align-items: center;
@@ -166,13 +163,12 @@ input[type="number"]:disabled {
     cursor: not-allowed;
 }
 
-
 .formula-image {
     margin-bottom: 20px;
     text-align: center;
 }
 
 .formula-image img {
-    max-height: 150px; /* Adjust this value as needed */
+    max-height: 150px;
     border-radius: 4px;
 }

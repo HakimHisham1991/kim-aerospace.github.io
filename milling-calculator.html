@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate milling cutting parameters including speed and feed per tooth">
+    <title>Milling Cutting Parameter Calculator</title>
+    <link rel="stylesheet" href="milling-calculator.css">
+    <!-- MathJax for formula rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Milling Cutting Parameter Calculator</h1>
+        <p class="revision">Rev: 001</p>
+    </div>
+
+    <div class="calculator-container">
+        <div class="formula-side">
+            <div class="formula-image">
+                <img src="speed-mill-1.gif" alt="Milling Diagram" style="max-width: 100%; height: auto;">
+            </div>
+            <div class="formula-display">
+                \[ vc = \frac{\pi \cdot D \cdot n}{1000} \, (m/min) \]
+                <div class="variable-defs">
+                    vc : Cutting Speed (m/min)<br>
+                    D : Cutter Diameter (mm)<br>
+                    n : Spindle Speed (min<sup>-1</sup>)
+                </div>
+            </div>
+            <div class="formula-display">
+                \[ fz = \frac{vf}{z \cdot n} \, (mm/tooth) \]
+                <div class="variable-defs">
+                    fz : Feed per Tooth (mm/tooth)<br>
+                    vf : Table Feed (mm/min)<br>
+                    z : Number of Teeth<br>
+                    n : Spindle Speed (min<sup>-1</sup>)
+                </div>
+            </div>
+        </div>
+        
+        <div class="calculator-content">
+            <h2>Cutting Speed (vc) Parameters</h2>
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-n" name="calc-type-vc">
+                    <label for="calc-n">Calculate Spindle Speed (n)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="speed" min="1" placeholder="Enter speed">
+                    <span class="unit">min<sup>-1</sup></span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-diameter" name="calc-type-vc">
+                    <label for="calc-diameter">Calculate Diameter (D)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="diameter" step="0.01" min="0.01" placeholder="Enter diameter">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-vc" name="calc-type-vc" checked>
+                    <label for="calc-vc">Calculate Cutting Speed (vc)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="vc" step="0.01" min="0.01" placeholder="Enter cutting speed">
+                    <span class="unit">m/min</span>
+                </div>
+            </div>
+            
+            <h2>Feed per Tooth (fz) Parameters</h2>
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-vf" name="calc-type-fz">
+                    <label for="calc-vf">Calculate Table Feed (vf)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="vf" min="1" placeholder="Enter table feed">
+                    <span class="unit">mm/min</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-z" name="calc-type-fz">
+                    <label for="calc-z">Calculate Number of Teeth (z)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="z" min="1" placeholder="Enter number of teeth">
+                    <span class="unit">teeth</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-fz" name="calc-type-fz" checked>
+                    <label for="calc-fz">Calculate Feed per Tooth (fz)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="fz" step="0.001" min="0.001" placeholder="Enter feed per tooth">
+                    <span class="unit">mm/tooth</span>
+                </div>
+            </div>
+            
+            <button id="calculate-btn">Calculate All</button>
+            
+            <div class="note">
+                * π (Pi) = 3.141592653589793<br>
+                * This calculator is for reference only. Actual results may vary based on cutting conditions.
+            </div>
+        </div>
+    </div>
+
+    <script src="milling-calculator.js"></script>
+</body>
+</html>

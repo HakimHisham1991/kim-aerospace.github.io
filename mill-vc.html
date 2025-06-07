@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Calculate milling cutting speed (vc) for machining operations">
     <title>Milling Cutting Speed Calculator</title>
-    <link rel="stylesheet" href="speed-mill.css">
+    <link rel="stylesheet" href="mill-vc.css">
     <!-- MathJax for formula rendering -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -13,14 +13,14 @@
 <body>
     <div class="header">
         <h1>Milling Cutting Speed Calculator</h1>
-        <p class="revision">Rev: 007</p>
+        <p class="revision">Rev: 008</p>
     </div>
 
     <div class="calculator-container">
         <div class="formula-side">
             <!-- Add this image container above the formula display -->
             <div class="formula-image">
-                <img src="speed-mill-1.gif" alt="Milling Diagram" style="max-width: 100%; height: auto;">
+                <img src="mill-vc-1.gif" alt="Milling Diagram" style="max-width: 100%; height: auto;">
             </div>
             <div class="formula-display">
                 \[ vc = \frac{\pi \cdot D \cdot n}{1000} \, (m/min) \]
@@ -76,6 +76,6 @@
         </div>
     </div>
 
-    <script src="speed-mill.js"></script>
+    <script src="mill-vc.js"></script>
 </body>
 </html>

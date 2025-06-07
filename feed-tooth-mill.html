@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate feed per tooth (fz) for machining operations">
+    <title>Feed per Tooth Calculator</title>
+    <link rel="stylesheet" href="feed-tooth-mill.css">
+    <!-- MathJax for formula rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Feed per Tooth Calculator</h1>
+        <p class="revision">Rev: 001</p>
+    </div>
+
+    <div class="calculator-container">
+        <div class="formula-side">
+               <div class="formula-image">
+                <img src="feed-tooth-mill-1.gif" alt="Milling Diagram 2" style="max-width: 100%; height: auto;">
+            </div>
+            <div class="formula-display">
+                \[ fz = \frac{vf}{z \cdot n} \, (mm/tooth) \]
+                <div class="variable-defs">
+                    fz : Feed per Tooth (mm/tooth)<br>
+                    vf : Table Feed per Minute (mm/min)<br>
+                    z : Number of Teeth<br>
+                    n : Spindle Speed (min<sup>-1</sup>)
+                </div>
+            </div>
+        </div>
+        
+        <div class="calculator-content">
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-vf" name="calc-type">
+                    <label for="calc-vf">Calculate vf</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="vf" min="1" placeholder="Enter table feed">
+                    <span class="unit">mm/min</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-z" name="calc-type">
+                    <label for="calc-z">Calculate z</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="z" min="1" placeholder="Enter number of teeth">
+                    <span class="unit">teeth</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-n" name="calc-type">
+                    <label for="calc-n">Calculate n</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="n" min="1" placeholder="Enter spindle speed">
+                    <span class="unit">min<sup>-1</sup></span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-fz" name="calc-type" checked>
+                    <label for="calc-fz">Calculate fz</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="fz" step="0.001" min="0.001" placeholder="Enter feed per tooth">
+                    <span class="unit">mm/tooth</span>
+                </div>
+            </div>
+            
+            <button id="calculate-btn">Calculate</button>
+            
+            <div class="note">
+                * This calculator is for reference only. Actual results may vary based on cutting conditions.
+            </div>
+        </div>
+    </div>
+
+    <script src="feed-tooth-mill.js"></script>
+</body>
+</html>

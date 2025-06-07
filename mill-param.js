@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
             const calculatedFz = vf / (z * n);
-            fzInput.value = calculatedFz.toFixed(3);
+            fzInput.value = calculatedFz.toFixed(6);
             return true;
         }
     }

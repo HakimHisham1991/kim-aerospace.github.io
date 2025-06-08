@@ -76,42 +76,43 @@ h2 {
     padding-bottom: 5px;
 }
 
-.shared-input-group {
-    margin: 15px 0;
-    padding: 10px;
-    background-color: #f0f7ff;
+.calculation-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
     border-radius: 4px;
 }
 
-.shared-input-group label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    display: block;
-}
-
-.calculation-section {
-    margin-bottom: 20px;
-}
-
 .input-group {
-    margin: 15px 0;
+    margin-bottom: 15px;
 }
 
-label {
-    display: block;
+.radio-group {
+    display: flex;
+    align-items: center;
     margin-bottom: 5px;
-    font-weight: bold;
 }
 
-input[type="number"] {
+.radio-group input[type="radio"] {
+    margin-right: 8px;
+}
+
+.input-with-unit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     width: 100%;
+}
+
+.input-with-unit input[type="number"] {
+    flex: 1;
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
     box-sizing: border-box;
 }
 
-input[type="number"]:focus {
+.input-with-unit input[type="number"]:focus {
     border-color: #0066cc;
     outline: none;
     box-shadow: 0 0 3px rgba(0,102,204,0.3);
@@ -120,7 +121,8 @@ input[type="number"]:focus {
 .unit {
     color: #666;
     font-size: 14px;
-    margin-left: 5px;
+    min-width: 60px;
+    text-align: left;
 }
 
 button {
@@ -163,17 +165,18 @@ button:active {
     }
 }
 
-.radio-group {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
+input[type="number"]:disabled {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
 }
 
-.radio-group input[type="radio"] {
-    margin-right: 8px;
+.formula-image {
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-.input-wrapper {
-    display: flex;
-    align-items: center;
+.formula-image img {
+    max-height: 75px;
+    border-radius: 4px;
+    margin: 5px 0;
 }

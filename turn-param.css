@@ -1,0 +1,179 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+    background-color: #f5f5f5;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.revision {
+    color: #666;
+    font-size: 14px;
+    margin-top: -15px;
+}
+
+.calculator-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.formula-side {
+    width: 200px;
+    margin-right: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.formula-display {
+    font-size: 18px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.formula-section {
+    margin: 15px 0;
+}
+
+.variable-defs {
+    margin-top: 20px;
+    font-size: 16px;
+}
+
+.calculator-content {
+    flex: 1;
+    min-width: 300px;
+}
+
+h1 {
+    color: #0066cc;
+    font-size: 24px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+h2 {
+    color: #0066cc;
+    font-size: 18px;
+    margin: 20px 0 10px 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.shared-input-group {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #f0f7ff;
+    border-radius: 4px;
+}
+
+.shared-input-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.calculation-section {
+    margin-bottom: 20px;
+}
+
+.input-group {
+    margin: 15px 0;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+input[type="number"]:focus {
+    border-color: #0066cc;
+    outline: none;
+    box-shadow: 0 0 3px rgba(0,102,204,0.3);
+}
+
+.unit {
+    color: #666;
+    font-size: 14px;
+    margin-left: 5px;
+}
+
+button {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    width: 100%;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0055aa;
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+.note {
+    font-size: 14px;
+    color: #666;
+    margin-top: 20px;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .calculator-container {
+        flex-direction: column;
+    }
+    
+    .formula-side {
+        width: auto;
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+}
+
+.radio-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.radio-group input[type="radio"] {
+    margin-right: 8px;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Unified Turning Cutting Parameters Calculator">
+    <title>Turning Cutting Parameters Calculator</title>
+    <link rel="stylesheet" href="turn-param.css">
+    <!-- MathJax for formula rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Turning Cutting Parameters Calculator</h1>
+        <p class="revision">Rev: 003</p>
+    </div>
+
+    <div class="calculator-container">
+        <div class="formula-side">
+            <div class="formula-image">
+                <img src="turn-param-1.jpg" alt="Turning Diagram" style="max-width: 100%; height: auto;">
+            </div>
+              <div class="formula-image">
+                <img src="turn-param-2.jpg" alt="Turning Diagram" style="max-width: 100%; height: auto;">
+            </div>
+            <div class="formula-display">
+                <div class="formula-section">
+                    \[ vc = \frac{\pi \cdot D \cdot n}{1000} \, (m/min) \]
+                </div>
+                <div class="formula-section">
+                    \[ f = \frac{l}{n} \, (mm/rev) \]
+                </div>
+                <div class="variable-defs">
+                    vc : Cutting Speed (m/min)<br>
+                    D : Workpiece Diameter (mm)<br>
+                    n : Spindle Speed (min<sup>-1</sup>)<br>
+                    f : Feed Rate (mm/rev)<br>
+                    l : Length of Cut (mm/min)
+                </div>
+            </div>
+        </div>
+        
+        <div class="calculator-content">
+            <div class="shared-input-group">
+                <div class="input-wrapper">
+                    <label for="n">Spindle Speed (n)</label>
+                    <input type="number" id="n" min="1" placeholder="Enter spindle speed">
+                    <span class="unit">min<sup>-1</sup></span>
+                </div>
+            </div>
+
+            <div class="calculation-section">
+                <h2>Cutting Speed (vc)</h2>
+                <div class="input-group">
+                    <div class="radio-group">
+                        <input type="radio" id="calc-diameter" name="calc-type-vc">
+                        <label for="calc-diameter">Calculate D</label>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" id="diameter" step="0.01" min="0.01" placeholder="Enter diameter">
+                        <span class="unit">mm</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="radio-group">
+                        <input type="radio" id="calc-vc" name="calc-type-vc" checked>
+                        <label for="calc-vc">Calculate vc</label>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" id="vc" step="0.01" min="0.01" placeholder="Enter cutting speed">
+                        <span class="unit">m/min</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="calculation-section">
+                <h2>Feed Rate (f)</h2>
+                <div class="input-group">
+                    <div class="radio-group">
+                        <input type="radio" id="calc-l" name="calc-type-f">
+                        <label for="calc-l">Calculate l</label>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" id="l" min="0.001" step="0.001" placeholder="Enter length of cut">
+                        <span class="unit">mm/min</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="radio-group">
+                        <input type="radio" id="calc-f" name="calc-type-f" checked>
+                        <label for="calc-f">Calculate f</label>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" id="f" step="0.001" min="0.001" placeholder="Enter feed rate">
+                        <span class="unit">mm/rev</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="calculate-btn">Calculate All</button>
+            
+            <div class="note">
+                * π (Pi) = 3.14<br>
+                * This calculator is for reference only. Actual results may vary based on cutting conditions.
+            </div>
+        </div>
+    </div>
+
+    <script src="turn-param.js"></script>
+</body>
+</html>

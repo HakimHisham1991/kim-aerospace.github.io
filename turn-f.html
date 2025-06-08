@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate feed rate (f) for turning operations">
+    <title>Turning Feed Rate Calculator</title>
+    <link rel="stylesheet" href="turn-f.css">
+    <!-- MathJax for formula rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Turning Feed Rate Calculator</h1>
+        <p class="revision">Rev: 001</p>
+    </div>
+
+    <div class="calculator-container">
+        <div class="formula-side">
+            <div class="formula-image">
+                <img src="turn-f-1.jpg" alt="Turning Diagram" style="max-width: 100%; height: auto;">
+            </div>
+            <div class="formula-display">
+                \[ f = \frac{l}{n} \, (mm/rev) \]
+                <div class="variable-defs">
+                    f : Feed Rate (mm/rev)<br>
+                    l : Length of Cut (mm/min)<br>
+                    n : Spindle Revolutions (rev/min)
+                </div>
+            </div>
+        </div>
+        
+        <div class="calculator-content">
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-l" name="calc-type">
+                    <label for="calc-l">Calculate l</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="l" min="0.001" step="0.001" placeholder="Enter length of cut">
+                    <span class="unit">mm/min</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-n" name="calc-type">
+                    <label for="calc-n">Calculate n</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="n" min="1" placeholder="Enter spindle revolutions">
+                    <span class="unit">rev/min</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-f" name="calc-type" checked>
+                    <label for="calc-f">Calculate f</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="f" step="0.001" min="0.001" placeholder="Enter feed rate">
+                    <span class="unit">mm/rev</span>
+                </div>
+            </div>
+            
+            <button id="calculate-btn">Calculate</button>
+            
+            <div class="note">
+                * This calculator is for reference only. Actual results may vary based on cutting conditions.
+            </div>
+        </div>
+    </div>
+
+    <script src="turn-f.js"></script>
+</body>
+</html>

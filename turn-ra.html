@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate theoretical finished surface roughness (Ra) for turning operations">
+    <title>Theoretical Surface Roughness Calculator</title>
+    <link rel="stylesheet" href="turn-ra.css">
+    <!-- MathJax for formula rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Theoretical Surface Roughness Calculator</h1>
+        <p class="revision">Rev: 001</p>
+    </div>
+
+    <div class="calculator-container">
+        <div class="formula-side">
+            <div class="formula-image">
+                <img src="turn-ra-1.gif" alt="Surface Roughness Formula" style="max-width: 100%; height: auto;">
+            </div>
+            <div class="formula-display">
+                \[ h = \frac{f^2}{8 \times Re} \times 1000 \, (\mu m) \]
+                <div class="variable-defs">
+                    h : Surface Roughness (µm)<br>
+                    f : Feed per Revolution (mm/rev)<br>
+                    Re : Insert Corner Radius (mm)
+                </div>
+            </div>
+        </div>
+        
+        <div class="calculator-content">
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-h" name="calc-type" checked>
+                    <label for="calc-h">Calculate h</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="h" min="0.001" step="0.001" placeholder="Enter surface roughness" disabled>
+                    <span class="unit">µm</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-f" name="calc-type">
+                    <label for="calc-f">Calculate f</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="f" min="0.001" step="0.001" placeholder="Enter feed per revolution">
+                    <span class="unit">mm/rev</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-re" name="calc-type">
+                    <label for="calc-re">Calculate Re</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="re" min="0.1" step="0.1" placeholder="Enter insert corner radius">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+            
+            <button id="calculate-btn">Calculate</button>
+            
+            <div class="note">
+                * This calculator provides theoretical values only. Actual surface roughness may vary based on cutting conditions, tool wear, and material properties.
+            </div>
+        </div>
+    </div>
+
+    <script src="turn-ra.js"></script>
+</body>
+</html>

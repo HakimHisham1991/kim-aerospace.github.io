@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate cutting time (Tc) for turning operations">
+    <title>Turning Cutting Time Calculator</title>
+    <link rel="stylesheet" href="turn-ct.css">
+    <!-- MathJax for formula rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Turning Cutting Time Calculator</h1>
+        <p class="revision">Rev: 001</p>
+    </div>
+
+    <div class="calculator-container">
+        <div class="formula-side">
+            <div class="formula-image">
+                <img src="turn-ct-1.jpg" alt="Turning Cutting Time Diagram" style="width: auto; height: 100px;">
+            </div>
+            <div class="formula-display">
+                \[ Tc = \frac{lm}{l} \, (min) \]
+                <div class="variable-defs">
+                    Tc : Cutting Time (min)<br>
+                    lm : Workpiece Length (mm)<br>
+                    l : Cutting Length per min (mm/min)
+                </div>
+            </div>
+        </div>
+        
+        <div class="calculator-content">
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-lm" name="calc-type">
+                    <label for="calc-lm">Calculate lm</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="workpiece-length" min="1" placeholder="Enter workpiece length" disabled>
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-l" name="calc-type">
+                    <label for="calc-l">Calculate l</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="cutting-length" step="0.01" min="0.01" placeholder="Enter cutting length per min">
+                    <span class="unit">mm/min</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-tc" name="calc-type" checked>
+                    <label for="calc-tc">Calculate Tc</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="tc" step="0.01" min="0.01" placeholder="Enter cutting time">
+                    <span class="unit">min</span>
+                </div>
+            </div>
+            
+            <button id="calculate-btn">Calculate</button>
+            
+            <div class="note">
+                * This calculator is for reference only. Actual results may vary based on cutting conditions.
+            </div>
+        </div>
+    </div>
+
+    <script src="turn-ct.js"></script>
+</body>
+</html>

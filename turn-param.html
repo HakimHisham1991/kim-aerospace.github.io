@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Unified Turning Cutting Parameters Calculator">
-    <title>Turning Cutting Parameters Calculator</title>
+    <meta name="description" content="Turning Parameters Calculator">
+    <title>Turning Parameters Calculator</title>
     <link rel="stylesheet" href="turn-param.css">
     <!-- MathJax for formula rendering -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -12,17 +12,15 @@
 </head>
 <body>
     <div class="header">
-        <h1>Turning Cutting Parameters Calculator</h1>
-        <p class="revision">Rev: 004</p>
+        <h1>Turning Parameters Calculator</h1>
+        <p class="revision">Rev: 008</p>
     </div>
 
     <div class="calculator-container">
         <div class="formula-side">
             <div class="formula-image">
-                <img src="turn-param-1.jpg" alt="Turning Diagram" style="width: auto; height: 100px;">
-            </div>
-              <div class="formula-image">
-                <img src="turn-param-2.jpg" alt="Turning Diagram" style="width: auto; height: 100px;">
+                <img src="turn-param-1.jpg" alt="Turning Diagram 1" style="max-width: 50%; height: auto;">
+                <img src="turn-param-2.jpg" alt="Turning Diagram 2" style="max-width: 50%; height: auto;">
             </div>
             <div class="formula-display">
                 <div class="formula-section">
@@ -42,65 +40,70 @@
         </div>
         
         <div class="calculator-content">
-            <div class="shared-input-group">
-                <div class="input-wrapper">
-                    <label for="n">Spindle Speed (n)</label>
-                    <input type="number" id="n" min="1" placeholder="Enter spindle speed">
-                    <span class="unit">min<sup>-1</sup></span>
-                </div>
-            </div>
-
             <div class="calculation-section">
                 <h2>Cutting Speed (vc)</h2>
-                <div class="input-group">
-                    <div class="radio-group">
-                        <input type="radio" id="calc-diameter" name="calc-type-vc">
-                        <label for="calc-diameter">Calculate D</label>
-                    </div>
-                    <div class="input-wrapper">
-                        <input type="number" id="diameter" step="0.01" min="0.01" placeholder="Enter diameter">
-                        <span class="unit">mm</span>
-                    </div>
-                </div>
                 
                 <div class="input-group">
                     <div class="radio-group">
                         <input type="radio" id="calc-vc" name="calc-type-vc" checked>
                         <label for="calc-vc">Calculate vc</label>
                     </div>
-                    <div class="input-wrapper">
-                        <input type="number" id="vc" step="0.01" min="0.01" placeholder="Enter cutting speed">
+                    <div class="input-with-unit">
+                        <input type="number" id="vc" step="0.01" min="0.01" placeholder="Cutting speed" disabled>
                         <span class="unit">m/min</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="radio-group">
+                        <input type="radio" id="calc-n" name="calc-type-vc">
+                        <label for="calc-n">Calculate n</label>
+                    </div>
+                    <div class="input-with-unit">
+                        <input type="number" id="n" min="1" placeholder="Spindle speed">
+                        <span class="unit">min<sup>-1</sup></span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="radio-group">
+                        <input type="radio" id="calc-diameter" name="calc-type-vc">
+                        <label for="calc-diameter">Calculate D</label>
+                    </div>
+                    <div class="input-with-unit">
+                        <input type="number" id="diameter" step="0.01" min="0.01" placeholder="Diameter">
+                        <span class="unit">mm</span>
                     </div>
                 </div>
             </div>
             
             <div class="calculation-section">
                 <h2>Feed Rate (f)</h2>
-                <div class="input-group">
-                    <div class="radio-group">
-                        <input type="radio" id="calc-l" name="calc-type-f">
-                        <label for="calc-l">Calculate l</label>
-                    </div>
-                    <div class="input-wrapper">
-                        <input type="number" id="l" min="0.001" step="0.001" placeholder="Enter length of cut">
-                        <span class="unit">mm/min</span>
-                    </div>
-                </div>
                 
                 <div class="input-group">
                     <div class="radio-group">
                         <input type="radio" id="calc-f" name="calc-type-f" checked>
                         <label for="calc-f">Calculate f</label>
                     </div>
-                    <div class="input-wrapper">
-                        <input type="number" id="f" step="0.001" min="0.001" placeholder="Enter feed rate">
+                    <div class="input-with-unit">
+                        <input type="number" id="f" step="0.001" min="0.001" placeholder="Feed rate" disabled>
                         <span class="unit">mm/rev</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="radio-group">
+                        <input type="radio" id="calc-l" name="calc-type-f">
+                        <label for="calc-l">Calculate l</label>
+                    </div>
+                    <div class="input-with-unit">
+                        <input type="number" id="l" min="0.001" step="0.001" placeholder="Length of cut">
+                        <span class="unit">mm/min</span>
                     </div>
                 </div>
             </div>
             
-            <button id="calculate-btn">Calculate All</button>
+            <button id="calculate-btn">Calculate</button>
             
             <div class="note">
                 * π (Pi) = 3.14<br>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bullnose Effective Diameter Calculator</title>
+    <link rel="stylesheet" href="mill-bull-dia.css">
+    <!-- Updated MathJax loading - removed polyfill and using cdnjs for MathJax -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Bullnose Effective Diameter Calculator</h1>
+        <div class="revision">Rev: 001</div>
+    </div>
+
+    <div class="calculator-container">
+        <div class="formula-side">
+            <div class="formula-image">
+                <img src="mill-bull-dia-1.jpg" alt="Bullnose Effective Diameter Formula" style="max-width: 100%; height: auto;">
+            </div>
+            <div class="math-wrapper">
+                <div class="formula-display">
+                    \( D_{eff} = D - 2r + 2 \times \sqrt{ADOC \times (2r - ADOC)} \)
+                </div>
+            </div>
+            <div class="variable-defs">
+                <div class="math-wrapper">
+                    \( D_{eff} \): Effective Diameter (mm)<br>
+                    \( D \): Nominal Diameter (mm)<br>
+                    \( r \): Corner Radius (mm)<br>
+                    \( ADOC \): Axial Depth of Cut (mm)
+                </div>
+            </div>
+        </div>
+
+        <div class="calculator-content">
+            <div class="input-group">
+                <label class="radio-group">
+                    <input type="radio" id="calc-deff" name="calc-type" checked> Calculate \( D_{eff} \)
+                </label>
+                <label class="input-wrapper">
+                    <input type="number" id="deff" placeholder="Effective Diameter" min="0" step="0.01" disabled>
+                    <span class="unit">mm</span>
+                </label>
+            </div>
+
+            <div class="input-group">
+                <label class="radio-group">
+                    <input type="radio" id="calc-d" name="calc-type"> Calculate \( D \)
+                </label>
+                <label class="input-wrapper">
+                    <input type="number" id="d" placeholder="Nominal Diameter" min="0" step="0.01">
+                    <span class="unit">mm</span>
+                </label>
+            </div>
+
+            <div class="input-group">
+                <label class="radio-group">
+                    <input type="radio" id="calc-r" name="calc-type"> Calculate \( r \)
+                </label>
+                <label class="input-wrapper">
+                    <input type="number" id="r" placeholder="Corner Radius" min="0" step="0.01">
+                    <span class="unit">mm</span>
+                </label>
+            </div>
+
+            <div class="input-group">
+                <label class="radio-group">
+                    <input type="radio" id="calc-adoc" name="calc-type"> Calculate \( ADOC \)
+                </label>
+                <label class="input-wrapper">
+                    <input type="number" id="adoc" placeholder="Axial Depth of Cut" min="0" step="0.01">
+                    <span class="unit">mm</span>
+                </label>
+            </div>
+
+            <button id="calculate-btn">Calculate</button>
+
+            <div class="note">
+                * This calculator provides theoretical values only. Actual effective diameter may vary based on cutting conditions and tool geometry.<br>
+                ** ADOC must be ≤ 2×Corner Radius for valid results.
+            </div>
+        </div>
+    </div>
+
+    <script src="mill-bull-dia.js"></script>
+</body>
+</html>

@@ -69,32 +69,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const r = parseFloat(rInput.value.replace(/,/g, '')) || 0;
         const adoc = parseFloat(adocInput.value.replace(/,/g, '')) || 0;
 
-        // Common validation for all calculations
-        if (deff <= 0 && !calcDeffRadio.checked) {
+        // Common validation for all calculations, skipping the disabled input
+        if (!calcDeffRadio.checked && deffInput.disabled === false && deff <= 0) {
             showError('All values must be positive numbers', deffInput);
             return;
         }
-        if (d <= 0 && !calcDRadio.checked) {
+        if (!calcDRadio.checked && dInput.disabled === false && d <= 0) {
             showError('All values must be positive numbers', dInput);
             return;
         }
-        if (r <= 0 && !calcRRadio.checked) {
+        if (!calcRRadio.checked && rInput.disabled === false && r <= 0) {
             showError('All values must be positive numbers', rInput);
             return;
         }
-        if (adoc <= 0 && !calcAdocRadio.checked) {
+        if (!calcAdocRadio.checked && adocInput.disabled === false && adoc <= 0) {
             showError('All values must be positive numbers', adocInput);
             return;
         }
-        if (adoc > r && !calcAdocRadio.checked) {
+        if (!calcAdocRadio.checked && !calcRRadio.checked && adoc > r) {
             showError('ADOC must be ≤ Corner Radius for valid results', adocInput);
             return;
         }
-        if (r > d/2 && !calcRRadio.checked && !calcDRadio.checked) {
+        if (!calcRRadio.checked && !calcDRadio.checked && r > d/2) {
             showError('r must be ≤ D/2 for valid results', rInput);
             return;
         }
-        if (deff > d && !calcDeffRadio.checked && !calcDRadio.checked) {
+        if (!calcDeffRadio.checked && !calcDRadio.checked && deff > d) {
             showError('Deff must be less than D for valid results', deffInput);
             return;
         }

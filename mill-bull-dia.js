@@ -34,6 +34,11 @@ document.addEventListener('DOMContentLoaded', function() {
             rInput.disabled = false;
             adocInput.disabled = true;
         }
+        // Reset input background colors
+        deffInput.style.backgroundColor = '';
+        dInput.style.backgroundColor = '';
+        rInput.style.backgroundColor = '';
+        adocInput.style.backgroundColor = '';
         resultDiv.textContent = '';
     }
 
@@ -53,39 +58,74 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function calculate() {
         resultDiv.textContent = '';
+        // Reset input background colors
+        deffInput.style.backgroundColor = '';
+        dInput.style.backgroundColor = '';
+        rInput.style.backgroundColor = '';
+        adocInput.style.backgroundColor = '';
+
         const deff = parseFloat(deffInput.value.replace(/,/g, '')) || 0;
         const d = parseFloat(dInput.value.replace(/,/g, '')) || 0;
         const r = parseFloat(rInput.value.replace(/,/g, '')) || 0;
         const adoc = parseFloat(adocInput.value.replace(/,/g, '')) || 0;
 
+        // Common validation for all calculations
+        if (deff <= 0 && !calcDeffRadio.checked) {
+            showError('All values must be positive numbers', deffInput);
+            return;
+        }
+        if (d <= 0 && !calcDRadio.checked) {
+            showError('All values must be positive numbers', dInput);
+            return;
+        }
+        if (r <= 0 && !calcRRadio.checked) {
+            showError('All values must be positive numbers', rInput);
+            return;
+        }
+        if (adoc <= 0 && !calcAdocRadio.checked) {
+            showError('All values must be positive numbers', adocInput);
+            return;
+        }
+        if (adoc > r && !calcAdocRadio.checked) {
+            showError('ADOC must be ≤ Corner Radius for valid results', adocInput);
+            return;
+        }
+        if (r > d/2 && !calcRRadio.checked && !calcDRadio.checked) {
+            showError('r must be ≤ D/2 for valid results', rInput);
+            return;
+        }
+        if (deff > d && !calcDeffRadio.checked && !calcDRadio.checked) {
+            showError('Deff must be less than D for valid results', deffInput);
+            return;
+        }
+
         if (calcDeffRadio.checked) {
-            if (d <= 0 || r <= 0 || adoc <= 0) {
-                showError('Please enter valid positive numbers for all inputs');
-                return;
-            }
-            if (adoc > 2 * r) {
-                showError('ADOC must be ≤ 2×Corner Radius for valid results');
-                return;
-            }
             const calculatedDeff = d - 2 * r + 2 * Math.sqrt(adoc * (2 * r - adoc));
+            if (isNaN(calculatedDeff) || calculatedDeff <= 0) {
+                showError('Invalid calculation: resulting Deff is not positive', deffInput);
+                return;
+            }
+            if (calculatedDeff > d) {
+                showError('Deff must be less than D for valid results', deffInput);
+                return;
+            }
             deffInput.value = calculatedDeff.toFixed(3);
         } else if (calcDRadio.checked) {
-            if (deff <= 0 || r <= 0 || adoc <= 0) {
-                showError('Please enter valid positive numbers for all inputs');
-                return;
-            }
-            if (adoc > 2 * r) {
-                showError('ADOC must be ≤ 2×Corner Radius for valid results');
-                return;
-            }
             const calculatedD = deff + 2 * r - 2 * Math.sqrt(adoc * (2 * r - adoc));
+            if (isNaN(calculatedD) || calculatedD <= 0) {
+                showError('Invalid calculation: resulting D is not positive', dInput);
+                return;
+            }
+            if (r > calculatedD/2) {
+                showError('r must be ≤ D/2 for valid results', rInput);
+                return;
+            }
+            if (deff > calculatedD) {
+                showError('Deff must be less than D for valid results', deffInput);
+                return;
+            }
             dInput.value = calculatedD.toFixed(3);
         } else if (calcRRadio.checked) {
-            if (deff <= 0 || d <= 0 || adoc <= 0) {
-                showError('Please enter valid positive numbers for all inputs');
-                return;
-            }
-
             const a = 4;
             const b = 4*(deff - d) - 8*adoc;
             const c = Math.pow(deff - d, 2) + 4*Math.pow(adoc, 2);
@@ -101,8 +141,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const r2 = (-b - Math.sqrt(discriminant))/(2*a);
 
             const validRs = [];
-            if (r1 >= adoc/2 && r1 > 0) validRs.push(r1.toFixed(3));
-            if (r2 >= adoc/2 && r2 > 0 && Math.abs(r2 - r1) > 0.001) validRs.push(r2.toFixed(3));
+            if (r1 > 0 && r1 <= d/2 && r1 >= adoc) validRs.push(r1.toFixed(3));
+            if (r2 > 0 && r2 <= d/2 && r2 >= adoc && Math.abs(r2 - r1) > 0.001) validRs.push(r2.toFixed(3));
 
             if (validRs.length === 0) {
                 showResult('No valid solution exists');
@@ -113,23 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         } else if (calcAdocRadio.checked) {
-            if (isNaN(deff) || isNaN(d) || isNaN(r) || deff <= 0 || d <= 0 || r <= 0) {
-                showError('Please enter valid positive numbers for all inputs');
-                return;
-            }
-            
-            // Correct ADOC calculation:
-            // Start with original formula: Deff = D - 2r + 2*sqrt(ADOC*(2r - ADOC))
-            // Rearrange: (Deff - D + 2r)/2 = sqrt(ADOC*(2r - ADOC))
-            // Square both sides: [(Deff - D + 2r)/2]^2 = ADOC*(2r - ADOC)
-            // Let k = [(Deff - D + 2r)/2]^2
-            // Then: k = 2r*ADOC - ADOC^2
-            // Rearrange: ADOC^2 - 2r*ADOC + k = 0
-            // Solve quadratic equation for ADOC
-            
             const k = Math.pow((deff - d + 2 * r) / 2, 2);
-            
-            // Quadratic equation coefficients: ADOC^2 - 2r*ADOC + k = 0
             const a = 1;
             const b = -2 * r;
             const c = k;
@@ -137,20 +161,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const discriminant = b * b - 4 * a * c;
             
             if (discriminant < 0) {
-                showError('No valid ADOC exists for these parameters');
+                showError('No valid ADOC exists for these parameters', adocInput);
                 return;
             }
             
             const adoc1 = (-b + Math.sqrt(discriminant)) / (2 * a);
             const adoc2 = (-b - Math.sqrt(discriminant)) / (2 * a);
             
-            // Valid ADOC must be between 0 and 2r
             const validAdocs = [];
-            if (adoc1 >= 0 && adoc1 <= 2 * r) validAdocs.push(adoc1);
-            if (adoc2 >= 0 && adoc2 <= 2 * r && Math.abs(adoc2 - adoc1) > 0.001) validAdocs.push(adoc2);
+            if (adoc1 > 0 && adoc1 <= r) validAdocs.push(adoc1);
+            if (adoc2 > 0 && adoc2 <= r && Math.abs(adoc2 - adoc1) > 0.001) validAdocs.push(adoc2);
             
             if (validAdocs.length === 0) {
-                showError('No valid ADOC exists for these parameters');
+                showError('No valid ADOC exists for these parameters', adocInput);
             } else {
                 adocInput.value = validAdocs[0].toFixed(3);
                 if (validAdocs.length > 1) {
@@ -160,9 +183,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function showError(message) {
+    function showError(message, inputElement) {
         resultDiv.textContent = message;
         resultDiv.style.color = 'red';
+        if (inputElement) {
+            inputElement.style.backgroundColor = '#e84855';
+        }
     }
 
     function showResult(message) {

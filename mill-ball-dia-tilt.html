@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tilted Ballnose Effective Diameter Calculator</title>
+    <link rel="stylesheet" href="mill-ball-dia-tilt.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="header">
+        <h1>Tilted Ballnose Effective Diameter Calculator</h1>
+        <div class="revision">Rev: 001</div>
+    </div>
+
+    <div class="calculator-container">
+        <div class="formula-side">
+            <div class="formula-image">
+                <img src="mill-ball-dia-tilt-1.jpg" alt="Tilted Ballnose Formula">
+            </div>
+            <div class="formula-display">
+                \( D_{eff} = d \cdot \sin\left(\beta + \arccos\left(1 - \frac{2 \cdot ap}{d}\right)\right) \)
+            </div>
+            <div class="variable-defs">
+                \( D_{eff} \): Effective Diameter (mm)<br>
+                \( d \): Nominal Diameter (mm)<br>
+                \( ap \): Axial Depth of Cut (mm)<br>
+                \( \beta \): Tilt Angle (degrees)
+            </div>
+        </div>
+
+        <div class="calculator-content">
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-deff" name="calc-variable" checked>
+                    <label for="calc-deff">Calculate \( D_{eff} \)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="deff" step="0.001" placeholder="Enter Deff">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-d" name="calc-variable">
+                    <label for="calc-d">Calculate \( d \) (Iterative)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="d" step="0.001" placeholder="Enter d">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-ap" name="calc-variable">
+                    <label for="calc-ap">Calculate \( ap \)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="ap" step="0.001" placeholder="Enter ap">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="radio-group">
+                    <input type="radio" id="calc-beta" name="calc-variable">
+                    <label for="calc-beta">Calculate \( \beta \)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="beta" step="0.001" placeholder="Enter β">
+                    <span class="unit">degrees</span>
+                </div>
+            </div>
+
+            <button id="calculate-btn">Calculate</button>
+            <div class="note">
+                * This calculator provides theoretical values only. Actual effective diameter may vary based on cutting conditions and tool geometry.<br>
+                ** All values must be positive numbers.<br>
+                ** \( ap \) must be \( \leq d/2 \) for valid results.<br>
+                ** \( D_{eff} \) must be \( \leq d \) for valid results.<br>
+                ** \( \beta \) must be between 0 and 90 degrees for valid results.
+            </div>
+            <div class="result-message"></div>
+        </div>
+    </div>
+
+    <script src="mill-ball-dia-tilt.js"></script>
+</body>
+</html>

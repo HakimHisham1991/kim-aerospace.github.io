@@ -42,6 +42,15 @@ document.addEventListener('DOMContentLoaded', function() {
         resultDiv.textContent = '';
     }
 
+    // Add click event listeners for auto-highlight
+    [deffInput, dInput, rInput, adocInput].forEach(input => {
+        input.addEventListener('click', function() {
+            if (!this.disabled) {
+                this.select();
+            }
+        });
+    });
+
     calculateBtn.addEventListener('click', calculate);
     [calcDeffRadio, calcDRadio, calcRRadio, calcAdocRadio].forEach(radio => {
         radio.addEventListener('change', updateInputStates);

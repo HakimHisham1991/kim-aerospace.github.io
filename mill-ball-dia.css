@@ -18,7 +18,7 @@ body {
 }
 
 .calculator-container {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     background-color: white;
     border-radius: 5px;
@@ -29,7 +29,8 @@ body {
 }
 
 .formula-side {
-    width: 200px;
+    flex: 1;
+    min-width: 200px;
     margin-right: 20px;
     display: flex;
     flex-direction: column;
@@ -188,6 +189,31 @@ input[type="number"]:disabled {
     overflow-x: hidden;
 }
 
+.result-message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Desktop/Laptop styles (60:40 ratio) */
+@media (min-width: 769px) {
+    .calculator-container {
+        flex-wrap: nowrap;
+    }
+    
+    .formula-side {
+        flex: 3; /* 60% of space */
+        max-width: 60%;
+    }
+    
+    .calculator-content {
+        flex: 2; /* 40% of space */
+        max-width: 40%;
+    }
+}
+
+/* Mobile styles */
 @media (max-width: 768px) {
     body {
         padding: 10px;
@@ -227,8 +253,9 @@ input[type="number"]:disabled {
         font-size: 16px;
     }
     
-    .variable-defs mjx-container {
-        font-size: 14px !important;
+    .variable-defs {
+        font-size: 14px;
+        word-wrap: break-word;
     }
     
     .formula-image img {
@@ -239,10 +266,5 @@ input[type="number"]:disabled {
     .math-wrapper {
         max-width: 100%;
         overflow-x: auto;
-    }
-    
-    .formula-display, .variable-defs {
-        font-size: 14px;
-        word-wrap: break-word;
     }
 }

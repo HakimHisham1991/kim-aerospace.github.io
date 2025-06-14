@@ -2,73 +2,75 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Effective Ballnose Diameter Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ballnose Effective Diameter Calculator</title>
     <link rel="stylesheet" href="mill-ball-dia.css">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <div class="header">
-        <h1>Effective Ballnose Diameter Calculator</h1>
-        <div class="revision">Rev: 002</div>
+        <h1>Ballnose Effective Diameter Calculator</h1>
+        <div class="revision">Rev: 008</div>
     </div>
 
     <div class="calculator-container">
         <div class="formula-side">
             <div class="formula-image">
-                <img src="mill-ball-dia-1.jpg" alt="Effective Ballnose Diameter Formula" style="max-width: 100%; height: auto;">
+                <img src="mill-ball-dia-1.jpg" alt="Ballnose Diagram">
             </div>
-            <div class="math-wrapper">
-                <div class="formula-display">
-                    \( D_{eff} = 2 \times \sqrt{ADOC \times (D - ADOC)} \)
-                </div>
+            <div class="formula-display">
+                \( D_{eff} = 2 \times \sqrt{ap \times (d - ap)} \)
             </div>
             <div class="variable-defs">
-                <div class="math-wrapper">
-                    \( D_{eff} \): Effective Diameter (mm)<br>
-                    \( ADOC \): Axial Depth of Cut (mm)<br>
-                    \( D \): Tool Diameter (mm)
-                </div>
+                \( D_{eff} \): Effective Diameter (mm)<br>
+                \( d \): Nominal Diameter (mm)<br>
+                \( ap \): Axial Depth of Cut (mm)
             </div>
         </div>
 
         <div class="calculator-content">
             <div class="input-group">
-                <label class="radio-group">
-                    <input type="radio" id="calc-deff" name="calc-type" checked> Calculate \( D_{eff} \)
-                </label>
-                <label class="input-wrapper">
-                    <input type="number" id="deff" placeholder="Effective Diameter" min="0" step="0.01" disabled>
+                <div class="radio-group">
+                    <input type="radio" id="calc-deff" name="calc-type" checked>
+                    <label for="calc-deff">Calculate \( D_{eff} \)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="deff" placeholder="Enter value" step="0.001" disabled>
                     <span class="unit">mm</span>
-                </label>
+                </div>
             </div>
 
             <div class="input-group">
-                <label class="radio-group">
-                    <input type="radio" id="calc-adoc" name="calc-type"> Calculate \( ADOC \)
-                </label>
-                <label class="input-wrapper">
-                    <input type="number" id="adoc" placeholder="Axial Depth of Cut" min="0" step="0.01">
+                <div class="radio-group">
+                    <input type="radio" id="calc-d" name="calc-type">
+                    <label for="calc-d">Calculate \( d \)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="d" placeholder="Enter value" step="0.001">
                     <span class="unit">mm</span>
-                </label>
+                </div>
             </div>
 
             <div class="input-group">
-                <label class="radio-group">
-                    <input type="radio" id="calc-d" name="calc-type"> Calculate \( D \)
-                </label>
-                <label class="input-wrapper">
-                    <input type="number" id="d" placeholder="Tool Diameter" min="0" step="0.01">
+                <div class="radio-group">
+                    <input type="radio" id="calc-ap" name="calc-type">
+                    <label for="calc-ap">Calculate \( ap \)</label>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="ap" placeholder="Enter value" step="0.001">
                     <span class="unit">mm</span>
-                </label>
+                </div>
             </div>
 
             <button id="calculate-btn">Calculate</button>
-
             <div class="note">
-                * This calculator provides theoretical values only. Actual effective diameter may vary based on cutting conditions and tool geometry.
+                * This calculator provides theoretical values only. Actual effective diameter may vary based on cutting conditions and tool geometry.<br>
+                ** All values must be positive numbers.<br>
+                ** \( ap \) must be \( \leq d/2 \) for valid results.<br>
+                ** \( D_{eff} \) must be \( \leq d \) for valid results.
             </div>
+            <div class="result-message"></div>
         </div>
     </div>
 

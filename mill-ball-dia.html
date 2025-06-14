@@ -11,7 +11,7 @@
 <body>
     <div class="header">
         <h1>Ballnose Effective Diameter Calculator</h1>
-        <div class="revision">Rev: 009</div>
+        <div class="revision">Rev: 010</div>
     </div>
 
     <div class="calculator-container">
@@ -19,9 +19,13 @@
             <div class="formula-image">
                 <img src="mill-ball-dia-1.jpg" alt="Ballnose Diagram">
             </div>
-            <div class="formula-display">
-                \( D_{eff} = 2 \times \sqrt{ap \times (d - ap)} \)
-            </div>
+        <div class="formula-display">
+            \( D_{eff} = 2 \times \sqrt{ap \times (d - ap)} \)
+            <br><br>
+            \( d = ap + \frac{D_{eff}^2}{4 \cdot ap} \)
+            <br><br>
+            \( ap = \frac{d \pm \sqrt{d^2 - D_{eff}^2}}{2} \)
+        </div>
             <div class="variable-defs">
                 \( D_{eff} \): Effective Diameter (mm)<br>
                 \( d \): Nominal Diameter (mm)<br>

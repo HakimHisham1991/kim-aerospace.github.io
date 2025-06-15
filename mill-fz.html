@@ -3,91 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Calculate feed per tooth (fz) for machining operations">
-    <title>Feed per Tooth Calculator</title>
+    <title>Milling Feed per Tooth Calculator</title>
     <link rel="stylesheet" href="mill-fz.css">
-    <!-- MathJax for formula rendering -->
+    <!-- Add MathJax for rendering LaTeX formulas -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="mill-fz.js" defer></script>
 </head>
 <body>
     <div class="header">
-        <h1>Feed per Tooth Calculator</h1>
-        <p class="revision">Rev: 005</p>
+        <h1>Milling Feed per Tooth Calculator</h1>
+        <div class="revision">Rev: 006</div>
     </div>
 
     <div class="calculator-container">
         <div class="formula-side">
             <div class="formula-image">
-                <img src="mill-fz-1.gif" alt="Milling Diagram 1" style="max-width: 100%; height: auto;">
-            </div>
-            <div class="formula-image">
-                <img src="mill-fz-2.gif" alt="Milling Diagram 2" style="max-width: 100%; height: auto;">
+                <img src="mill-fz-1.gif" alt="Milling Feed Animation">
             </div>
             <div class="formula-display">
-                \[ fz = \frac{vf}{z \cdot n} \, (mm/tooth) \]
-                <div class="variable-defs">
-                    fz : Feed per Tooth (mm/tooth)<br>
-                    vf : Table Feed per Minute (mm/min)<br>
-                    z : Number of Teeth<br>
-                    n : Spindle Speed (min<sup>-1</sup>)
-                </div>
+                \[ f_z = \frac{v_f}{n \cdot z} \, (mm/tooth) \]
+                \[ v_f = f_z \cdot n \cdot z \, (mm/min) \]
+                \[ n = \frac{v_f}{f_z \cdot z} \, (min^{-1}) \]
+                \[ z = \frac{v_f}{f_z \cdot n} \, (teeth) \]
+            </div>
+            <div class="variable-defs">
+                <p>\( f_z \): Feed per Tooth (mm/tooth)</p>
+                <p>\( v_f \): Feed Rate (mm/min)</p>
+                <p>\( n \): Spindle Speed (min⁻¹)</p>
+                <p>\( z \): Number of Teeth</p>
             </div>
         </div>
-        
+
         <div class="calculator-content">
             <div class="input-group">
-                <div class="radio-group">
-                    <input type="radio" id="calc-vf" name="calc-type">
-                    <label for="calc-vf">Calculate vf</label>
-                </div>
-                <div class="input-wrapper">
-                    <input type="number" id="vf" min="1" placeholder="Enter table feed">
-                    <span class="unit">mm/min</span>
-                </div>
+                <input type="radio" id="calc-fz" name="calculation" checked>
+                <label for="calc-fz">Calculate \( f_z \) (Feed per Tooth)</label>
+                <input type="number" id="fz" step="any" placeholder="Enter fz">
+                <span class="unit">mm/tooth</span>
             </div>
-            
+
             <div class="input-group">
-                <div class="radio-group">
-                    <input type="radio" id="calc-z" name="calc-type">
-                    <label for="calc-z">Calculate z</label>
-                </div>
-                <div class="input-wrapper">
-                    <input type="number" id="z" min="1" placeholder="Enter number of teeth">
-                    <span class="unit">teeth</span>
-                </div>
+                <input type="radio" id="calc-vf" name="calculation">
+                <label for="calc-vf">Calculate \( v_f \) (Feed Rate)</label>
+                <input type="number" id="vf" step="any" placeholder="Enter vf">
+                <span class="unit">mm/min</span>
             </div>
-            
+
             <div class="input-group">
-                <div class="radio-group">
-                    <input type="radio" id="calc-n" name="calc-type">
-                    <label for="calc-n">Calculate n</label>
-                </div>
-                <div class="input-wrapper">
-                    <input type="number" id="n" min="1" placeholder="Enter spindle speed">
-                    <span class="unit">min<sup>-1</sup></span>
-                </div>
+                <input type="radio" id="calc-n" name="calculation">
+                <label for="calc-n">Calculate \( n \) (Spindle Speed)</label>
+                <input type="number" id="n" step="any" placeholder="Enter n">
+                <span class="unit">min⁻¹</span>
             </div>
-            
+
             <div class="input-group">
-                <div class="radio-group">
-                    <input type="radio" id="calc-fz" name="calc-type" checked>
-                    <label for="calc-fz">Calculate fz</label>
-                </div>
-                <div class="input-wrapper">
-                    <input type="number" id="fz" step="0.001" min="0.001" placeholder="Enter feed per tooth">
-                    <span class="unit">mm/tooth</span>
-                </div>
+                <input type="radio" id="calc-z" name="calculation">
+                <label for="calc-z">Calculate \( z \) (Number of Teeth)</label>
+                <input type="number" id="z" step="any" placeholder="Enter z">
+                <span class="unit">teeth</span>
             </div>
-            
+
             <button id="calculate-btn">Calculate</button>
-            
+
             <div class="note">
-                * This calculator is for reference only. Actual results may vary based on cutting conditions.
+                <p>* This calculator provides theoretical values only. Actual feed rates may vary based on cutting conditions and tool geometry.</p>
+                <p>** All values must be positive numbers.</p>
+                </p>** Number of teeth (\( z \)) must be greater than 1.</p>
             </div>
         </div>
     </div>
-
-    <script src="mill-fz.js"></script>
 </body>
 </html>

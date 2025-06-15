@@ -1,88 +1,98 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Get DOM elements
     const calculateBtn = document.getElementById('calculate-btn');
-    const diameterInput = document.getElementById('diameter');
-    const speedInput = document.getElementById('speed');
     const vcInput = document.getElementById('vc');
-    const calcNRadio = document.getElementById('calc-n');
-    const calcDRadio = document.getElementById('calc-diameter');
+    const dInput = document.getElementById('d');
+    const nInput = document.getElementById('n');
     const calcVcRadio = document.getElementById('calc-vc');
-    
-    // Function to update input states
+    const calcDRadio = document.getElementById('calc-d');
+    const calcNRadio = document.getElementById('calc-n');
+    const resultDiv = document.createElement('div');
+    resultDiv.className = 'result-message';
+    document.querySelector('.calculator-content').appendChild(resultDiv);
+
+    // Add onclick event to auto-highlight content
+    [vcInput, dInput, nInput].forEach(input => {
+        input.onclick = function() {
+            this.select();
+        };
+    });
+
     function updateInputStates() {
-        if (calcNRadio.checked) {
-            // Calculating n (spindle speed) - disable n input
-            speedInput.disabled = true;
-            diameterInput.disabled = false;
-            vcInput.disabled = false;
-        } 
-        else if (calcDRadio.checked) {
-            // Calculating D (diameter) - disable D input
-            speedInput.disabled = false;
-            diameterInput.disabled = true;
-            vcInput.disabled = false;
-        } 
-        else if (calcVcRadio.checked) {
-            // Calculating vc (cutting speed) - disable vc input
-            speedInput.disabled = false;
-            diameterInput.disabled = false;
-            vcInput.disabled = true;
-        }
+        vcInput.disabled = calcVcRadio.checked;
+        dInput.disabled = calcDRadio.checked;
+        nInput.disabled = calcNRadio.checked;
+        vcInput.style.backgroundColor = '';
+        dInput.style.backgroundColor = '';
+        nInput.style.backgroundColor = '';
+        resultDiv.textContent = '';
     }
-    
-    // Add event listeners
+
     calculateBtn.addEventListener('click', calculate);
-    
-    // Update input states when radio selection changes
-    calcNRadio.addEventListener('change', updateInputStates);
-    calcDRadio.addEventListener('change', updateInputStates);
-    calcVcRadio.addEventListener('change', updateInputStates);
-    
-    // Initialize input states
+    [calcVcRadio, calcDRadio, calcNRadio].forEach(radio => {
+        radio.addEventListener('change', updateInputStates);
+    });
     updateInputStates();
-    
-    // Allow calculation on Enter key press
-    [diameterInput, speedInput, vcInput].forEach(input => {
+
+    [vcInput, dInput, nInput].forEach(input => {
         input.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 calculate();
             }
         });
     });
-    
+
     function calculate() {
-        // Get and sanitize input values
-        const diameter = parseFloat(diameterInput.value.replace(/,/g, ''));
-        const speed = parseFloat(speedInput.value.replace(/,/g, ''));
-        const vc = parseFloat(vcInput.value.replace(/,/g, ''));
-        
-        // Calculate based on selected radio
-        if (calcNRadio.checked) {
-            // Calculate n (spindle speed)
-            if (isNaN(diameter) || isNaN(vc) || diameter <= 0 || vc <= 0) {
-                alert('Please enter valid positive numbers for Diameter and Cutting Speed');
+        resultDiv.textContent = '';
+        vcInput.style.backgroundColor = '';
+        dInput.style.backgroundColor = '';
+        nInput.style.backgroundColor = '';
+
+        const vc = parseFloat(vcInput.value.replace(/,/g, '')) || 0;
+        const d = parseFloat(dInput.value.replace(/,/g, '')) || 0;
+        const n = parseFloat(nInput.value.replace(/,/g, '')) || 0;
+
+        if (!calcVcRadio.checked && vc <= 0) {
+            showError('All values must be positive numbers', vcInput);
+            return;
+        }
+        if (!calcDRadio.checked && d <= 0) {
+            showError('All values must be positive numbers', dInput);
+            return;
+        }
+        if (!calcNRadio.checked && n <= 0) {
+            showError('All values must be positive numbers', nInput);
+            return;
+        }
+
+        if (calcVcRadio.checked) {
+            const calculatedVc = (Math.PI * d * n) / 1000;
+            if (isNaN(calculatedVc) || calculatedVc <= 0) {
+                showError('Invalid calculation: resulting vc is not positive', vcInput);
                 return;
             }
-            const n = (vc * 1000) / (3.14 * diameter);
-            speedInput.value = Math.round(n);
-        } 
-        else if (calcDRadio.checked) {
-            // Calculate D (diameter)
-            if (isNaN(speed) || isNaN(vc) || speed <= 0 || vc <= 0) {
-                alert('Please enter valid positive numbers for Speed and Cutting Speed');
+            vcInput.value = calculatedVc.toFixed(3);
+        } else if (calcDRadio.checked) {
+            const calculatedD = (vc * 1000) / (Math.PI * n);
+            if (isNaN(calculatedD) || calculatedD <= 0) {
+                showError('Invalid calculation: resulting d is not positive', dInput);
                 return;
             }
-            const D = (vc * 1000) / (3.14 * speed);
-            diameterInput.value = D.toFixed(2);
-        } 
-        else if (calcVcRadio.checked) {
-            // Calculate vc (cutting speed)
-            if (isNaN(diameter) || isNaN(speed) || diameter <= 0 || speed <= 0) {
-                alert('Please enter valid positive numbers for Diameter and Speed');
+            dInput.value = calculatedD.toFixed(3);
+        } else if (calcNRadio.checked) {
+            const calculatedN = (vc * 1000) / (Math.PI * d);
+            if (isNaN(calculatedN) || calculatedN <= 0) {
+                showError('Invalid calculation: resulting n is not positive', nInput);
                 return;
             }
-            const calculatedVc = (3.14 * diameter * speed) / 1000;
-            vcInput.value = calculatedVc.toFixed(2);
+            nInput.value = Math.round(calculatedN);
+        }
+    }
+
+    function showError(message, inputElement) {
+        resultDiv.textContent = message;
+        resultDiv.style.color = 'red';
+        if (inputElement) {
+            inputElement.style.backgroundColor = '#e84855';
         }
     }
 });

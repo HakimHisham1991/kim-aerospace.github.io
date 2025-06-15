@@ -34,3 +34,65 @@
     .tool-card a:hover {
       background: #0056b3;
     }
+
+
+
+
+.section {
+  margin-bottom: 25px;
+  background: #f0f0f0;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #007bff;
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.tool-card {
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+}
+
+.tool-card h3 {
+  font-size: 1rem;
+  margin: 0 0 5px 0;
+  color: #222;
+}
+
+/* Keep all your existing styles and add these media queries */
+@media (max-width: 600px) {
+  .tools-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .tools-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 901px) {
+  .tools-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+    }
+
+

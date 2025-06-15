@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showError('Invalid calculation: resulting vf is not positive', vfInput);
                 return;
             }
-            vfInput.value = calculatedVf.toFixed(6);
+            vfInput.value = Math.round(calculatedVf);
         } else if (calcNRadio.checked) {
             const calculatedN = vf / (fz * z);
             if (isNaN(calculatedN) || calculatedN <= 0) {

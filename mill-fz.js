@@ -1,111 +1,115 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Get DOM elements
     const calculateBtn = document.getElementById('calculate-btn');
-    const vfInput = document.getElementById('vf');
-    const zInput = document.getElementById('z');
-    const nInput = document.getElementById('n');
     const fzInput = document.getElementById('fz');
-    const calcVfRadio = document.getElementById('calc-vf');
-    const calcZRadio = document.getElementById('calc-z');
-    const calcNRadio = document.getElementById('calc-n');
+    const vfInput = document.getElementById('vf');
+    const nInput = document.getElementById('n');
+    const zInput = document.getElementById('z');
     const calcFzRadio = document.getElementById('calc-fz');
-    
-    // Function to update input states
+    const calcVfRadio = document.getElementById('calc-vf');
+    const calcNRadio = document.getElementById('calc-n');
+    const calcZRadio = document.getElementById('calc-z');
+    const resultDiv = document.createElement('div');
+    resultDiv.className = 'result-message';
+    document.querySelector('.calculator-content').appendChild(resultDiv);
+
+    // Add onclick event to auto-highlight content
+    [fzInput, vfInput, nInput, zInput].forEach(input => {
+        input.onclick = function() {
+            this.select();
+        };
+    });
+
     function updateInputStates() {
-        if (calcVfRadio.checked) {
-            // Calculating vf - disable vf input
-            vfInput.disabled = true;
-            zInput.disabled = false;
-            nInput.disabled = false;
-            fzInput.disabled = false;
-        } 
-        else if (calcZRadio.checked) {
-            // Calculating z - disable z input
-            vfInput.disabled = false;
-            zInput.disabled = true;
-            nInput.disabled = false;
-            fzInput.disabled = false;
-        } 
-        else if (calcNRadio.checked) {
-            // Calculating n - disable n input
-            vfInput.disabled = false;
-            zInput.disabled = false;
-            nInput.disabled = true;
-            fzInput.disabled = false;
-        }
-        else if (calcFzRadio.checked) {
-            // Calculating fz - disable fz input
-            vfInput.disabled = false;
-            zInput.disabled = false;
-            nInput.disabled = false;
-            fzInput.disabled = true;
-        }
+        fzInput.disabled = calcFzRadio.checked;
+        vfInput.disabled = calcVfRadio.checked;
+        nInput.disabled = calcNRadio.checked;
+        zInput.disabled = calcZRadio.checked;
+        fzInput.style.backgroundColor = '';
+        vfInput.style.backgroundColor = '';
+        nInput.style.backgroundColor = '';
+        zInput.style.backgroundColor = '';
+        resultDiv.textContent = '';
     }
-    
-    // Add event listeners
+
     calculateBtn.addEventListener('click', calculate);
-    
-    // Update input states when radio selection changes
-    calcVfRadio.addEventListener('change', updateInputStates);
-    calcZRadio.addEventListener('change', updateInputStates);
-    calcNRadio.addEventListener('change', updateInputStates);
-    calcFzRadio.addEventListener('change', updateInputStates);
-    
-    // Initialize input states
+    [calcFzRadio, calcVfRadio, calcNRadio, calcZRadio].forEach(radio => {
+        radio.addEventListener('change', updateInputStates);
+    });
     updateInputStates();
-    
-    // Allow calculation on Enter key press
-    [vfInput, zInput, nInput, fzInput].forEach(input => {
+
+    [fzInput, vfInput, nInput, zInput].forEach(input => {
         input.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 calculate();
             }
         });
     });
-    
+
     function calculate() {
-        // Get and sanitize input values
-        const vf = parseFloat(vfInput.value.replace(/,/g, ''));
-        const z = parseFloat(zInput.value.replace(/,/g, ''));
-        const n = parseFloat(nInput.value.replace(/,/g, ''));
-        const fz = parseFloat(fzInput.value.replace(/,/g, ''));
-        
-        // Calculate based on selected radio
-        if (calcVfRadio.checked) {
-            // Calculate vf (table feed)
-            if (isNaN(z) || isNaN(n) || isNaN(fz) || z <= 0 || n <= 0 || fz <= 0) {
-                alert('Please enter valid positive numbers for Number of Teeth, Spindle Speed, and Feed per Tooth');
-                return;
-            }
-            const calculatedVf = z * n * fz;
-            vfInput.value = Math.round(calculatedVf);
-        } 
-        else if (calcZRadio.checked) {
-            // Calculate z (number of teeth)
-            if (isNaN(vf) || isNaN(n) || isNaN(fz) || vf <= 0 || n <= 0 || fz <= 0) {
-                alert('Please enter valid positive numbers for Table Feed, Spindle Speed, and Feed per Tooth');
-                return;
-            }
-            const calculatedZ = vf / (n * fz);
-            zInput.value = Math.round(calculatedZ);
-        } 
-        else if (calcNRadio.checked) {
-            // Calculate n (spindle speed)
-            if (isNaN(vf) || isNaN(z) || isNaN(fz) || vf <= 0 || z <= 0 || fz <= 0) {
-                alert('Please enter valid positive numbers for Table Feed, Number of Teeth, and Feed per Tooth');
-                return;
-            }
-            const calculatedN = vf / (z * fz);
-            nInput.value = Math.round(calculatedN);
+        resultDiv.textContent = '';
+        fzInput.style.backgroundColor = '';
+        vfInput.style.backgroundColor = '';
+        nInput.style.backgroundColor = '';
+        zInput.style.backgroundColor = '';
+
+        const fz = parseFloat(fzInput.value.replace(/,/g, '')) || 0;
+        const vf = parseFloat(vfInput.value.replace(/,/g, '')) || 0;
+        const n = parseFloat(nInput.value.replace(/,/g, '')) || 0;
+        const z = parseFloat(zInput.value.replace(/,/g, '')) || 0;
+
+        if (!calcFzRadio.checked && fz <= 0) {
+            showError('All values must be positive numbers', fzInput);
+            return;
         }
-        else if (calcFzRadio.checked) {
-            // Calculate fz (feed per tooth)
-            if (isNaN(vf) || isNaN(z) || isNaN(n) || vf <= 0 || z <= 0 || n <= 0) {
-                alert('Please enter valid positive numbers for Table Feed, Number of Teeth, and Spindle Speed');
+        if (!calcVfRadio.checked && vf <= 0) {
+            showError('All values must be positive numbers', vfInput);
+            return;
+        }
+        if (!calcNRadio.checked && n <= 0) {
+            showError('All values must be positive numbers', nInput);
+            return;
+        }
+        if (!calcZRadio.checked && z <= 0) {
+            showError('All values must be positive numbers', zInput);
+            return;
+        }
+
+        if (calcFzRadio.checked) {
+            const calculatedFz = vf / (n * z);
+            if (isNaN(calculatedFz) || calculatedFz <= 0) {
+                showError('Invalid calculation: resulting fz is not positive', fzInput);
                 return;
             }
-            const calculatedFz = vf / (z * n);
             fzInput.value = calculatedFz.toFixed(6);
+        } else if (calcVfRadio.checked) {
+            const calculatedVf = fz * n * z;
+            if (isNaN(calculatedVf) || calculatedVf <= 0) {
+                showError('Invalid calculation: resulting vf is not positive', vfInput);
+                return;
+            }
+            vfInput.value = calculatedVf.toFixed(6);
+        } else if (calcNRadio.checked) {
+            const calculatedN = vf / (fz * z);
+            if (isNaN(calculatedN) || calculatedN <= 0) {
+                showError('Invalid calculation: resulting n is not positive', nInput);
+                return;
+            }
+            nInput.value = Math.round(calculatedN);
+        } else if (calcZRadio.checked) {
+            const calculatedZ = vf / (fz * n);
+            if (isNaN(calculatedZ) || calculatedZ <= 1) {
+                showError('Invalid calculation: resulting z must be greater than 1', zInput);
+                return;
+            }
+            zInput.value = Math.ceil(calculatedZ);
+        }
+    }
+
+    function showError(message, inputElement) {
+        resultDiv.textContent = message;
+        resultDiv.style.color = 'red';
+        if (inputElement) {
+            inputElement.style.backgroundColor = '#e84855';
         }
     }
 });

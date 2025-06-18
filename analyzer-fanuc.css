@@ -1,0 +1,105 @@
+.table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  font-family: sans-serif;
+  padding: 20px;
+  background: #f5f5f5;
+}
+h1 {
+  font-size: 1.5rem;
+}
+input[type="file"] {
+  margin-bottom: 10px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background: #fff;
+}
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+th {
+  background: #eee;
+}
+.download {
+  margin-top: 10px;
+}
+.tool-group {
+  margin-top: 15px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.tool-header {
+  padding: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #333;
+  user-select: none;
+}
+.tool-body {
+  display: none;
+}
+.tool-body .table-wrapper {
+  margin: 0;
+}
+.controls {
+  margin-top: 10px;
+}
+.controls label,
+.controls button {
+  margin-right: 10px;
+  margin-top: 5px;
+}
+.controls button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.controls button.active {
+  background-color: #d0ebff;
+}
+.file-stats {
+  margin: 10px 0;
+  padding: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  font-size: 1.5rem;
+}
+.file-stats span {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.file-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+#fileInput {
+  font-size: 1.2rem;
+  padding: 10px 15px;
+  width: auto;
+  margin-left: 20px;
+}
+
+.file-name-display {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 5px 0 0 20px;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}

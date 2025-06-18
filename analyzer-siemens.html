@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Siemens NC Program Analyzer</title>
+  <link rel="stylesheet" href="analyzer-siemens.css">
+</head>
+<body>
+  <h1>Siemens NC File Analyzer</h1>
+  <p>Rev: 006</p>
+  <div>Build: 001</div>
+  <p><small>Mode: Production</small><p>
+
+  <div class="file-input-wrapper">
+    <input type="file" id="fileInput" accept="*/*">
+    <div id="fileNameDisplay" class="file-name-display">No file selected</div>
+  </div>
+
+  <div class="file-stats">
+    <span id="lineCount">Lines: 0</span>
+    <span id="charCount">Characters: 0</span>
+    <span id="opCount">No. of Operations: 0</span>
+    <span id="uniqueToolsCount">Unique Tools: 0</span>
+  </div>
+
+  <div class="download">
+    <label for="format">Download as:</label>
+    <select id="format">
+      <option value="xlsx">XLSX</option>
+      <option value="csv">CSV</option>
+      <option value="txt">TXT</option>
+    </select>
+    <button id="downloadBtn">Download</button>
+  </div>
+
+  <div class="controls">
+    <label><input type="checkbox" id="groupToggle"> Group by Tool (collapsible)</label><br>
+    <button id="collapseAll" disabled>Collapse All</button>
+    <button id="expandAll" disabled>Expand All</button>
+  </div>
+
+  <div id="groupContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jschardet@3.1.4/dist/jschardet.min.js"></script>
+  <script src="analyzer-siemens.js"></script>
+</body>
+</html>

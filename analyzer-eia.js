@@ -92,8 +92,9 @@ function processFileContent(content) {
 
   lines.forEach(line => {
     // Check for operation start
-    if (line.includes('( Start Path')) {
-      const operationNameMatch = line.match(/Start Path\s*:\s*(.+?)\)/);
+    // SIMPLIFIED: Check for operation start - only looks for "Start Path"
+    if (line.includes('Start Path')) {
+      const operationNameMatch = line.match(/Start Path\s*:\s*(.+?)(?:\s*\)|$)/);
       const operationName = operationNameMatch ? operationNameMatch[1].trim() : `Operation ${++operationCounter}`;
       
       currentOperation = {
@@ -101,14 +102,16 @@ function processFileContent(content) {
         toolNumber: '',
         toolName: '',
         rpm: '',
-        feedrates: new Set()
+        feedrates: new Set(),
+        throughCoolant: false
       };
       parsedData.push(currentOperation);
     }
     
     // Check for tool information in the operation header (only for tool name)
-    if (currentOperation && line.includes('( Tool Name')) {
-      const toolNameMatch = line.match(/Tool Name\s*:\s*([^)]+)/);
+    if (currentOperation && line.includes('Tool Name')) {
+      // Look for "Tool Name" followed by colon and capture everything until the end of line or closing parenthesis
+      const toolNameMatch = line.match(/Tool Name\s*:\s*([^)\r\n]+)/);
       if (toolNameMatch) {
         currentOperation.toolName = toolNameMatch[1].trim();
       }
@@ -154,6 +157,19 @@ function processFileContent(content) {
       const feedMatch = line.match(/F(\d+(\.\d+)?)/);
       if (feedMatch) {
         currentOperation.feedrates.add(feedMatch[1]);
+      }
+    }
+    
+    // Check for through coolant activation
+    if (currentOperation) {
+      const coolantCodes = ['M51', 'M131', 'M07', 'M7', 'M88'];
+      const hasCoolant = coolantCodes.some(code => {
+        // Match the code as a whole word (preceded by whitespace or start of line, followed by whitespace or end of line)
+        return new RegExp(`(?:^|\\s)${code}(?:\\s|$)`).test(line);
+      });
+      
+      if (hasCoolant) {
+        currentOperation.throughCoolant = true;
       }
     }
   });
@@ -251,6 +267,7 @@ function renderGrouped(container) {
           <th>Tool Number</th>
           <th>Feedrates</th>
           <th>Spindle RPM</th>
+          <th>Through Coolant</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -267,6 +284,7 @@ function renderGrouped(container) {
         <td>${op.toolNumber}</td>
         <td>${Array.from(op.feedrates).join(', ')}</td>
         <td>${op.rpm}</td>
+        <td>${op.throughCoolant ? 'X' : ''}</td>
       `;
       tbody.appendChild(row);
     });
@@ -295,6 +313,7 @@ function renderFlat(container) {
         <th>Tool Number</th>
         <th>Feedrates</th>
         <th>Spindle RPM</th>
+        <th>Through Coolant</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -311,6 +330,7 @@ function renderFlat(container) {
       <td>${op.toolNumber}</td>
       <td>${Array.from(op.feedrates).join(', ')}</td>
       <td>${op.rpm}</td>
+      <td>${op.throughCoolant ? 'X' : ''}</td>
     `;
     tbody.appendChild(row);
   });
@@ -323,7 +343,7 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
   const format = document.getElementById('format').value;
   const baseName = inputFileName || 'eia_output';
   
-  const header = ["No.", "Operation Name", "Tool Name", "Tool Number", "Feedrates", "Spindle RPM"];
+  const header = ["No.", "Operation Name", "Tool Name", "Tool Number", "Feedrates", "Spindle RPM", "Through Coolant"];
   const rows = [];
   
   parsedData.forEach((item, index) => {
@@ -333,7 +353,8 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
       item.toolName,
       item.toolNumber,
       Array.from(item.feedrates).join(', '),
-      item.rpm
+      item.rpm,
+      item.throughCoolant ? 'X' : ''
     ]);
   });
 
@@ -423,13 +444,14 @@ document.getElementById('downloadBtn').addEventListener('click', async function 
         { width: excelWidth(12) },
         { width: excelWidth(25) },
         { width: excelWidth(15) },
-        { width: excelWidth(12) }
+        { width: excelWidth(12) },
+        { width: excelWidth(15) }
       ];
       
       // Add filters
       worksheet.autoFilter = {
         from: 'A1',
-        to: 'F1'
+        to: 'G1'
       };
       
       // Freeze header row

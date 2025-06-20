@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Table Joiner</title>
+    <link rel="stylesheet" href="excel-join.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Excel Table Joiner</h1>
+        <h2>Rev: 001</h2>
+        <div class="instructions">
+            <p>Upload multiple Excel files to join tables from A11:L11 until "CAM Programmer :" is found in column A.</p>
+            <p><strong>Expected Columns:</strong> Filename, Tool No., Tool Name, Consumable Tool Description, Tool Supplier, Tool Holder, Tool Diameter (D1), Flute Length (L1), Tool Ext. Length (L2), Tool Corner Radius, Arbor Description(or equivalent specs), Tool Path Time in Minutes, Remarks</p>
+        </div>
+        
+        <div class="file-upload">
+            <input type="file" id="excel-files" accept=".xlsx, .xls" multiple>
+            <button id="process-btn">Process Files</button>
+        </div>
+        
+        <div class="output-section">
+            <div class="controls">
+                <button id="export-xlsx-btn" disabled>Export as XLSX</button>
+                <button id="clear-btn" disabled>Clear Results</button>
+            </div>
+            <div id="table-container"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="excel-join.js"></script>
+</body>
+</html>

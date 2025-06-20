@@ -1,0 +1,249 @@
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h2 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+
+
+.instructions {
+    background-color: #eaf2f8;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    border-left: 4px solid #3498db;
+}
+
+.file-upload {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.file-upload input[type="file"] {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+button {
+    padding: 8px 16px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+button:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+}
+
+.output-section {
+    margin-top: 30px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+#table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #3498db;
+    color: white;
+    position: sticky;
+    top: 0;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #e3f2fd;
+}
+
+.status {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.status.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+
+/* Base Styles */
+table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Base Unit = 60px */
+:root {
+    --base-width: 60px;
+}
+
+/* Column Width Definitions */
+table th:nth-child(1),  /* Tool No. (1x) */
+table td:nth-child(1) {
+    width: calc(var(--base-width) * 1);
+    min-width: calc(var(--base-width) * 1);
+}
+
+table th:nth-child(2),  /* Tool Name (3x) */
+table td:nth-child(2) {
+    width: calc(var(--base-width) * 3);
+    min-width: calc(var(--base-width) * 3);
+}
+
+table th:nth-child(3),  /* Consumable Tool Description (3x) */
+table td:nth-child(3) {
+    width: calc(var(--base-width) * 3);
+    min-width: calc(var(--base-width) * 3);
+}
+
+table th:nth-child(4),  /* Tool Supplier (2x) */
+table td:nth-child(4) {
+    width: calc(var(--base-width) * 2);
+    min-width: calc(var(--base-width) * 2);
+}
+
+table th:nth-child(5),  /* Tool Holder (3x) */
+table td:nth-child(5) {
+    width: calc(var(--base-width) * 3);
+    min-width: calc(var(--base-width) * 3);
+}
+
+table th:nth-child(6),  /* Tool Diameter (D1) (1x) */
+table td:nth-child(6),
+table th:nth-child(7),  /* Flute Length (L1) (1x) */
+table td:nth-child(7),
+table th:nth-child(8),  /* Tool Ext. Length (L2) (1x) */
+table td:nth-child(8),
+table th:nth-child(9),  /* Tool Corner Radius (1x) */
+table td:nth-child(9),
+table th:nth-child(11), /* Tool Path Time (1x) */
+table td:nth-child(11) {
+    width: var(--base-width);
+    min-width: var(--base-width);
+}
+
+table th:nth-child(10), /* Arbor Description (3x) */
+table td:nth-child(10),
+table th:nth-child(12), /* Remarks (3x) */
+table td:nth-child(12) {
+    width: calc(var(--base-width) * 3);
+    min-width: calc(var(--base-width) * 3);
+}
+
+table th:nth-child(13), /* Filename */
+table td:nth-child(13) {
+    width: calc(var(--base-width) * 2.5);
+    min-width: calc(var(--base-width) * 2.5);
+}
+
+/* Common Cell Styles */
+table th,
+table td {
+    padding: 8px;
+    word-wrap: break-word;
+    border: 1px solid #ddd;
+}
+
+/* Numeric Columns - Right Aligned */
+table td:nth-child(1),  /* Tool No. */
+table td:nth-child(6),  /* Tool Diameter */
+table td:nth-child(7),  /* Flute Length */
+table td:nth-child(8),  /* Ext. Length */
+table td:nth-child(9),  /* Corner Radius */
+table td:nth-child(11) { /* Path Time */
+    text-align: right;
+}
+
+/* Text Columns - Left Aligned */
+table td:nth-child(2),  /* Tool Name */
+table td:nth-child(3),  /* Consumable Desc */
+table td:nth-child(4),  /* Supplier */
+table td:nth-child(5),  /* Holder */
+table td:nth-child(10), /* Arbor Desc */
+table td:nth-child(12), /* Remarks */
+table td:nth-child(13) { /* Filename */
+    text-align: left;
+}
+
+
+#export-xlsx-btn {
+    background-color: #27ae60; /* Green color for XLSX */
+}
+
+#export-xlsx-btn:hover {
+    background-color: #219653;
+}
+
+#export-csv-btn {
+    background-color: #3498db; /* Blue color for CSV */
+}
+
+#export-csv-btn:hover {
+    background-color: #2980b9;
+}

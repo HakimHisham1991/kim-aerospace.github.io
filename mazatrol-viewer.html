@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -97,6 +58,7 @@
 </head>
 <body>
     <h1>Mazatrol NC Program Reader</h1>
+    <p>Rev: 002</p>
     <input type="file" id="fileInput" accept=".pbd,.pbf,.m6m,.txt">
     <button onclick="clearOutput()">Clear Output</button>
     <div id="error"></div>
@@ -109,7 +71,6 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // Check if file has supported extensions
             const validExtensions = ['.pbd', '.pbf', '.m6m', '.txt'];
             if (!validExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
                 showError('Please upload a .pbd, .pbf, .m6m, or .txt file.');
@@ -118,46 +79,61 @@
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                const content = e.target.result;
-                displayMazatrolContent(content);
+                const arrayBuffer = e.target.result;
+                processBinaryFile(arrayBuffer);
             };
             reader.onerror = function() {
                 showError('Error reading file.');
             };
-            reader.readAsText(file);
+            reader.readAsArrayBuffer(file);
         }
 
-        function displayMazatrolContent(content) {
+        function processBinaryFile(arrayBuffer) {
             const outputDiv = document.getElementById('output');
             const errorDiv = document.getElementById('error');
             errorDiv.style.display = 'none';
             outputDiv.innerHTML = '';
 
             try {
-                const lines = content.split('\n').map(line => line.trim()).filter(line => line);
-                let formattedContent = '';
-
-                lines.forEach(line => {
-                    let formattedLine = line;
-
-                    // Parse and style based on Mazatrol structure
-                    if (line.startsWith('UNO') || line.startsWith('UN')) {
-                        formattedLine = `<span class="highlight-green">${line}</span>`;
-                    } else if (line.includes('TOOL') || line.includes('FIG')) {
-                        formattedLine = `<span class="highlight-blue">${line}</span>`;
-                    } else if (line.match(/\d+\.\d+/)) { // Numeric values with decimals
-                        formattedLine = line.replace(/\d+\.\d+/g, match => `<span class="highlight-green">${match}</span>`);
-                    } else if (line.includes('ERROR') || line.includes('0.0')) {
-                        formattedLine = `<span class="highlight-red">${line}</span>`;
+                const uint8Array = new Uint8Array(arrayBuffer);
+                let text = '';
+                for (let i = 0; i < uint8Array.length; i++) {
+                    // Attempt to interpret as ASCII where possible
+                    if (uint8Array[i] >= 32 && uint8Array[i] <= 126) {
+                        text += String.fromCharCode(uint8Array[i]);
+                    } else {
+                        text += ' '; // Replace non-printable characters with space
                     }
+                }
 
-                    formattedContent += formattedLine + '\n';
-                });
-
-                outputDiv.innerHTML = formattedContent;
+                displayMazatrolContent(text);
             } catch (err) {
-                showError('Error parsing Mazatrol file: ' + err.message);
+                showError('Error processing file: ' + err.message);
             }
+        }
+
+        function displayMazatrolContent(content) {
+            const outputDiv = document.getElementById('output');
+            const lines = content.split('\n').map(line => line.trim()).filter(line => line);
+            let formattedContent = '';
+
+            lines.forEach(line => {
+                let formattedLine = line;
+
+                if (line.startsWith('UNO') || line.startsWith('UN')) {
+                    formattedLine = `<span class="highlight-green">${line}</span>`;
+                } else if (line.includes('TOOL') || line.includes('FIG')) {
+                    formattedLine = `<span class="highlight-blue">${line}</span>`;
+                } else if (line.match(/\d+\.\d+/)) {
+                    formattedLine = line.replace(/\d+\.\d+/g, match => `<span class="highlight-green">${match}</span>`);
+                } else if (line.includes('0.0') || line.includes('ERROR')) {
+                    formattedLine = `<span class="highlight-red">${line}</span>`;
+                }
+
+                formattedContent += formattedLine + '\n';
+            });
+
+            outputDiv.innerHTML = formattedContent;
         }
 
         function showError(message) {

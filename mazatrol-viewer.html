@@ -1,0 +1,177 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mazatrol NC Program Reader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        #fileInput {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        .highlight-green { color: #0f0; }
+        .highlight-red { color: #f00; }
+        .highlight-blue { color: #00f; }
+        #error {
+            color: #f00;
+            text-align: center;
+            display: none;
+        }
+        button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mazatrol NC Program Reader</h1>
+    <input type="file" id="fileInput" accept=".pbd,.pbf,.m6m,.txt">
+    <button onclick="clearOutput()">Clear Output</button>
+    <div id="error"></div>
+    <div id="output"></div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Check if file has supported extensions
+            const validExtensions = ['.pbd', '.pbf', '.m6m', '.txt'];
+            if (!validExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
+                showError('Please upload a .pbd, .pbf, .m6m, or .txt file.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                displayMazatrolContent(content);
+            };
+            reader.onerror = function() {
+                showError('Error reading file.');
+            };
+            reader.readAsText(file);
+        }
+
+        function displayMazatrolContent(content) {
+            const outputDiv = document.getElementById('output');
+            const errorDiv = document.getElementById('error');
+            errorDiv.style.display = 'none';
+            outputDiv.innerHTML = '';
+
+            try {
+                const lines = content.split('\n').map(line => line.trim()).filter(line => line);
+                let formattedContent = '';
+
+                lines.forEach(line => {
+                    let formattedLine = line;
+
+                    // Parse and style based on Mazatrol structure
+                    if (line.startsWith('UNO') || line.startsWith('UN')) {
+                        formattedLine = `<span class="highlight-green">${line}</span>`;
+                    } else if (line.includes('TOOL') || line.includes('FIG')) {
+                        formattedLine = `<span class="highlight-blue">${line}</span>`;
+                    } else if (line.match(/\d+\.\d+/)) { // Numeric values with decimals
+                        formattedLine = line.replace(/\d+\.\d+/g, match => `<span class="highlight-green">${match}</span>`);
+                    } else if (line.includes('ERROR') || line.includes('0.0')) {
+                        formattedLine = `<span class="highlight-red">${line}</span>`;
+                    }
+
+                    formattedContent += formattedLine + '\n';
+                });
+
+                outputDiv.innerHTML = formattedContent;
+            } catch (err) {
+                showError('Error parsing Mazatrol file: ' + err.message);
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('output').innerHTML = '';
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+        }
+    </script>
+</body>
+</html>

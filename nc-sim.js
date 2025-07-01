@@ -6,6 +6,7 @@ let contentHistory = [];
 let editCounter = 1;
 let lastSavedName = '';
 let currentScale = 1;
+let showArrows = false; // Default to OFF
 
 // Windows-1252 to Unicode mapping for characters that differ from ASCII
 const windows1252Map = {
@@ -178,6 +179,18 @@ function calculateTickInterval(range) {
   return tickInterval;
 }
 
+function drawArrow(ctx, fromX, fromY, toX, toY, scale) {
+  const headlen = 10 * scale; // Arrowhead length
+  const angle = Math.atan2(toY - fromY, toX - fromX);
+  
+  ctx.beginPath();
+  ctx.moveTo(toX, toY);
+  ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+  ctx.moveTo(toX, toY);
+  ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+  ctx.stroke();
+}
+
 function simulateToolpath() {
   if (!displayContent) {
     alert('Please load a file first');
@@ -230,14 +243,15 @@ function simulateToolpath() {
       maxX = Math.max(maxX, x);
       minY = Math.min(minY, y);
       maxY = Math.max(maxY, y);
-      // Update bounds for arc center if G02
+      // Update bounds for arc center and radius if G02
       if (mode === 'G02') {
         const centerX = currentX + i;
         const centerY = currentY + j;
-        minX = Math.min(minX, centerX);
-        maxX = Math.max(maxX, centerX);
-        minY = Math.min(minY, centerY);
-        maxY = Math.max(maxY, centerY);
+        const radius = Math.sqrt(i * i + j * j);
+        minX = Math.min(minX, centerX - radius);
+        maxX = Math.max(maxX, centerX + radius);
+        minY = Math.min(minY, centerY - radius);
+        maxY = Math.max(maxY, centerY + radius);
       }
     }
     currentMode = mode;
@@ -339,6 +353,8 @@ function simulateToolpath() {
     ctx.beginPath();
     const startCanvasX = path.startX * scale + offsetX;
     const startCanvasY = canvas.height - (path.startY * scale + offsetY);
+    const endCanvasX = path.endX * scale + offsetX;
+    const endCanvasY = canvas.height - (path.endY * scale + offsetY);
     if (path.mode === 'G02') {
       // Calculate arc parameters
       const centerX = path.startX + path.i;
@@ -387,13 +403,28 @@ function simulateToolpath() {
       const centerCanvasX = centerX * scale + offsetX;
       const centerCanvasY = canvas.height - (centerY * scale + offsetY);
       
-      ctx.arc(centerCanvasX, centerCanvasY, radius * scale, startAngle, endAngle, false); // false for clockwise
+      ctx.arc(centerCanvasX, centerCanvasY, radius * scale, startAngle, endAngle, false); // Define arc
       ctx.strokeStyle = '#00ff00'; // Green for arcs
-      ctx.setLineDash([]);
+      ctx.stroke(); // Stroke the arc to make it visible
+      
+      // Draw arrows if toggle is ON
+      if (showArrows) {
+        const arrowSpacing = 0.5; // Angular spacing in radians (adjust for density)
+        const numArrows = Math.ceil((endAngle - startAngle) / arrowSpacing);
+        for (let i = 0; i < numArrows; i++) {
+          const angle = startAngle + i * ((endAngle - startAngle) / numArrows);
+          const arrowX = centerX + radius * Math.cos(angle);
+          const arrowY = centerY - radius * Math.sin(angle); // Adjust for canvas Y-axis
+          const nextAngle = startAngle + (i + 1) * ((endAngle - startAngle) / numArrows);
+          const nextX = centerX + radius * Math.cos(nextAngle);
+          const nextY = centerY - radius * Math.sin(nextAngle);
+          drawArrow(ctx, arrowX * scale + offsetX, canvas.height - (arrowY * scale + offsetY), nextX * scale + offsetX, canvas.height - (nextY * scale + offsetY), scale);
+        }
+      }
     } else {
       // Linear path for G00 and G01
       ctx.moveTo(startCanvasX, startCanvasY);
-      ctx.lineTo(path.endX * scale + offsetX, canvas.height - (path.endY * scale + offsetY));
+      ctx.lineTo(endCanvasX, endCanvasY);
       
       if (path.mode === 'G00') {
         ctx.setLineDash([5, 5]); // Dashed line for rapid moves
@@ -402,9 +433,21 @@ function simulateToolpath() {
         ctx.setLineDash([]); // Solid line for cutting
         ctx.strokeStyle = '#0000ff'; // Blue for cutting
       }
+      ctx.stroke(); // Stroke the linear path
     }
-    
-    ctx.stroke();
+
+    // Draw arrows for linear paths if toggle is ON
+    if (showArrows && path.mode !== 'G02') {
+      const arrowSpacing = 50 * scale; // Adjust spacing based on scale
+      const length = Math.sqrt(Math.pow(endCanvasX - startCanvasX, 2) + Math.pow(endCanvasY - startCanvasY, 2));
+      const numArrows = Math.max(1, Math.floor(length / arrowSpacing));
+      for (let i = 1; i <= numArrows; i++) {
+        const t = i / (numArrows + 1);
+        const arrowX = startCanvasX + t * (endCanvasX - startCanvasX);
+        const arrowY = startCanvasY + t * (endCanvasY - startCanvasY);
+        drawArrow(ctx, arrowX, arrowY, endCanvasX, endCanvasY, scale);
+      }
+    }
   });
 
   // Save current content to history if edited
@@ -523,4 +566,9 @@ document.getElementById('clearFileBtn').addEventListener('click', function() {
   if (confirm('Are you sure you want to clear the current file? This action cannot be undone.')) {
     resetFileInput();
   }
+});
+
+document.getElementById('arrowToggle').addEventListener('change', function(e) {
+  showArrows = e.target.checked;
+  simulateToolpath();
 });

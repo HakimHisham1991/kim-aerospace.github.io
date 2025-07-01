@@ -8,7 +8,7 @@
 </head>
 <body>
   <h1>NC Toolpath Simulator</h1>
-  <p>Rev: 011</p>
+  <p>Rev: 013</p>
   <p>Build: 001</p>
   <p>Mode: Production</p>
 
@@ -46,14 +46,18 @@
     </select>
     <button id="applyScaleBtn">Apply Scale</button>
   </div>
-  
-<div id="warningsDiv" style="color: red; font-family: Arial, sans-serif; font-size: 14px; margin-top: 5px;"></div>
-  
-
-  <div class="canvas-wrapper">
-    <canvas id="toolpathCanvas" width="800" height="1500"></canvas>
+  <div>
+    <label for="arrowToggle">Show Arrows: </label>
+    <input type="checkbox" id="arrowToggle">
   </div>
 
+  <div class="canvas-wrapper">
+    <canvas id="toolpathCanvas" width="800" height="600"></canvas>
+  </div>
+
+  <div id="warningsDiv" style="color: red; font-family: Arial, sans-serif; font-size: 14px; margin-top: 5px;"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script src="nc-sim.js"></script>
 </body>
 </html>

@@ -114,7 +114,7 @@ function handleFileContent(arrayBuffer) {
 
 function generateSaveName() {
   if (lastSavedName) {
-    const editMatch = lastSavedName.match(/^(.*?)(_edit\d+)(\.[^.]+)?$/i);
+    const editMatch = lastSavedName.match(/^(.*?)(_edit[0-9]+)(\.[^.]+)?$/i);
     if (editMatch) {
       const baseName = editMatch[1];
       const currentEditNum = parseInt(editMatch[2].replace('_edit', '')) || 0;
@@ -223,7 +223,8 @@ function simulateToolpath() {
         const code = token.toUpperCase();
         if (code === 'G00' || code === 'G0') mode = 'G00';
         else if (code === 'G01' || code === 'G1') mode = 'G01';
-        else if (code === 'G02') mode = 'G02';
+        else if (code === 'G02' || code === 'G2') mode = 'G02';
+        else if (code === 'G03' || code === 'G3') mode = 'G03';
       } else if (token.startsWith('X')) {
         x = parseFloat(token.substring(1));
       } else if (token.startsWith('Y')) {
@@ -243,8 +244,8 @@ function simulateToolpath() {
       maxX = Math.max(maxX, x);
       minY = Math.min(minY, y);
       maxY = Math.max(maxY, y);
-      // Update bounds for arc center and radius if G02
-      if (mode === 'G02') {
+      // Update bounds for arc center and radius if G02 or G03
+      if (mode === 'G02' || mode === 'G03') {
         const centerX = currentX + i;
         const centerY = currentY + j;
         const radius = Math.sqrt(i * i + j * j);
@@ -355,7 +356,7 @@ function simulateToolpath() {
     const startCanvasY = canvas.height - (path.startY * scale + offsetY);
     const endCanvasX = path.endX * scale + offsetX;
     const endCanvasY = canvas.height - (path.endY * scale + offsetY);
-    if (path.mode === 'G02') {
+    if (path.mode === 'G02' || path.mode === 'G03') {
       // Calculate arc parameters
       const centerX = path.startX + path.i;
       const centerY = path.startY + path.j;
@@ -384,18 +385,29 @@ function simulateToolpath() {
       }
       
       // Calculate angles with Y-axis inversion for canvas
-      const startAngle = Math.atan2(-(path.startY - centerY), path.startX - centerX); // Negate Y for canvas
+      let startAngle = Math.atan2(-(path.startY - centerY), path.startX - centerX); // Negate Y for canvas
       let endAngle = Math.atan2(-(path.endY - centerY), path.endX - centerX); // Negate Y for canvas
       
       // Handle full circle (start point equals end point)
       let isFullCircle = false;
       if (Math.abs(path.startX - path.endX) < 0.001 && Math.abs(path.startY - path.endY) < 0.001) {
         isFullCircle = true;
-        endAngle = startAngle + 2 * Math.PI; // Full 360° clockwise sweep
+        endAngle = path.mode === 'G02' ? startAngle + 2 * Math.PI : startAngle - 2 * Math.PI; // Full 360° sweep
       } else {
-        // Ensure clockwise motion (G02)
-        if (endAngle < startAngle) {
-          endAngle += 2 * Math.PI; // Adjust for clockwise wraparound
+        // Normalize angles to [0, 2π)
+        startAngle = (startAngle + 2 * Math.PI) % (2 * Math.PI);
+        endAngle = (endAngle + 2 * Math.PI) % (2 * Math.PI);
+        // Adjust angles based on direction
+        if (path.mode === 'G02') {
+          // Clockwise: ensure endAngle > startAngle
+          if (endAngle <= startAngle) {
+            endAngle += 2 * Math.PI;
+          }
+        } else {
+          // Counterclockwise: ensure endAngle < startAngle
+          if (endAngle >= startAngle) {
+            endAngle -= 2 * Math.PI;
+          }
         }
       }
       
@@ -403,22 +415,36 @@ function simulateToolpath() {
       const centerCanvasX = centerX * scale + offsetX;
       const centerCanvasY = canvas.height - (centerY * scale + offsetY);
       
-      ctx.arc(centerCanvasX, centerCanvasY, radius * scale, startAngle, endAngle, false); // Define arc
+      // Draw arc (clockwise for G02, counterclockwise for G03)
+      ctx.arc(centerCanvasX, centerCanvasY, radius * scale, startAngle, endAngle, path.mode === 'G03'); // true for counterclockwise
       ctx.strokeStyle = '#00ff00'; // Green for arcs
       ctx.stroke(); // Stroke the arc to make it visible
       
       // Draw arrows if toggle is ON
       if (showArrows) {
         const arrowSpacing = 0.5; // Angular spacing in radians (adjust for density)
-        const numArrows = Math.ceil((endAngle - startAngle) / arrowSpacing);
+        const angleDiff = path.mode === 'G03' ? startAngle - endAngle : endAngle - startAngle;
+        const numArrows = Math.ceil(Math.abs(angleDiff) / arrowSpacing);
         for (let i = 0; i < numArrows; i++) {
-          const angle = startAngle + i * ((endAngle - startAngle) / numArrows);
+          const t = i / Math.max(1, numArrows - 1);
+          const angle = path.mode === 'G03' 
+            ? startAngle - t * (startAngle - endAngle)
+            : startAngle + t * (endAngle - startAngle);
           const arrowX = centerX + radius * Math.cos(angle);
           const arrowY = centerY - radius * Math.sin(angle); // Adjust for canvas Y-axis
-          const nextAngle = startAngle + (i + 1) * ((endAngle - startAngle) / numArrows);
+          const nextT = (i + 1) / Math.max(1, numArrows - 1);
+          const nextAngle = path.mode === 'G03'
+            ? startAngle - nextT * (startAngle - endAngle)
+            : startAngle + nextT * (endAngle - startAngle);
           const nextX = centerX + radius * Math.cos(nextAngle);
           const nextY = centerY - radius * Math.sin(nextAngle);
-          drawArrow(ctx, arrowX * scale + offsetX, canvas.height - (arrowY * scale + offsetY), nextX * scale + offsetX, canvas.height - (nextY * scale + offsetY), scale);
+          drawArrow(ctx, 
+            arrowX * scale + offsetX, 
+            canvas.height - (arrowY * scale + offsetY), 
+            nextX * scale + offsetX, 
+            canvas.height - (nextY * scale + offsetY), 
+            scale
+          );
         }
       }
     } else {
@@ -437,7 +463,7 @@ function simulateToolpath() {
     }
 
     // Draw arrows for linear paths if toggle is ON
-    if (showArrows && path.mode !== 'G02') {
+    if (showArrows && path.mode !== 'G02' && path.mode !== 'G03') {
       const arrowSpacing = 50 * scale; // Adjust spacing based on scale
       const length = Math.sqrt(Math.pow(endCanvasX - startCanvasX, 2) + Math.pow(endCanvasY - startCanvasY, 2));
       const numArrows = Math.max(1, Math.floor(length / arrowSpacing));

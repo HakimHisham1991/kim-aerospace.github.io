@@ -166,19 +166,6 @@ function clearCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function calculateTickInterval(range) {
-  // Calculate nice tick interval based on range
-  const exponent = Math.floor(Math.log10(range));
-  const fraction = range / Math.pow(10, exponent);
-  
-  let tickInterval = Math.pow(10, exponent);
-  if (fraction < 2) tickInterval *= 0.2;
-  else if (fraction < 5) tickInterval *= 0.5;
-  else if (fraction < 10) tickInterval *= 1;
-  
-  return tickInterval;
-}
-
 function drawArrow(ctx, fromX, fromY, toX, toY, scale) {
   const headlen = 10 * scale; // Arrowhead length
   const angle = Math.atan2(toY - fromY, toX - fromX);
@@ -238,22 +225,25 @@ function simulateToolpath() {
 
     if (!isNaN(x) && !isNaN(y)) {
       paths.push({ startX: currentX, startY: currentY, endX: x, endY: y, i, j, mode });
-      currentX = x;
-      currentY = y;
-      minX = Math.min(minX, x);
-      maxX = Math.max(maxX, x);
-      minY = Math.min(minY, y);
-      maxY = Math.max(maxY, y);
-      // Update bounds for arc center and radius if G02 or G03
-      if (mode === 'G02' || mode === 'G03') {
+      // Update bounds based on rules
+      if (mode === 'G00' || mode === 'G01') {
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+      } else if (mode === 'G02' || mode === 'G03') {
         const centerX = currentX + i;
         const centerY = currentY + j;
         const radius = Math.sqrt(i * i + j * j);
-        minX = Math.min(minX, centerX - radius);
-        maxX = Math.max(maxX, centerX + radius);
-        minY = Math.min(minY, centerY - radius);
-        maxY = Math.max(maxY, centerY + radius);
+        if (radius >= 0.001) { // Skip invalid arcs
+          minX = Math.min(minX, centerX - radius);
+          maxX = Math.max(maxX, centerX + radius);
+          minY = Math.min(minY, centerY - radius);
+          maxY = Math.max(maxY, centerY + radius);
+        }
       }
+      currentX = x;
+      currentY = y;
     }
     currentMode = mode;
   });
@@ -264,12 +254,19 @@ function simulateToolpath() {
     return;
   }
 
-  // Add padding to ensure all quadrants are visible
-  const viewPadding = 10; // Minimum 10 units padding around the toolpath
-  minX = Math.min(minX, -viewPadding);
-  maxX = Math.max(maxX, viewPadding);
-  minY = Math.min(minY, -viewPadding);
-  maxY = Math.max(maxY, viewPadding);
+  // Ensure minimum padding of 10 units in each quadrant
+  const minPadding = 10;
+  if (minX > -minPadding) minX = -minPadding;
+  if (maxX < minPadding) maxX = minPadding;
+  if (minY > -minPadding) minY = -minPadding;
+  if (maxY < minPadding) maxY = minPadding;
+
+  // Round min/max to nearest hundred for tick marks
+  const tickInterval = 100;
+  minX = Math.floor(minX / tickInterval) * tickInterval;
+  maxX = Math.ceil(maxX / tickInterval) * tickInterval;
+  minY = Math.floor(minY / tickInterval) * tickInterval;
+  maxY = Math.ceil(maxY / tickInterval) * tickInterval;
 
   // Calculate scaling to fit canvas
   const padding = 50;
@@ -284,29 +281,29 @@ function simulateToolpath() {
   const effectiveHeight = height === 0 ? minDimension : height;
 
   // Base scale to fit the toolpath within the canvas
-  const scaleX = canvasWidth / effectiveWidth;
-  const scaleY = canvasHeight / effectiveHeight;
-  let scale = Math.min(scaleX, scaleY) * currentScale;
+  let scale = Math.min(canvasHeight / effectiveHeight, canvasWidth / effectiveWidth) * currentScale;
 
   // Adjust offsets to center the toolpath
-  const offsetX = padding + (canvasWidth - effectiveWidth * scale) / 2 - minX * scale;
-  const offsetY = padding + (canvasHeight - effectiveHeight * scale) / 2 - minY * scale;
+  const offsetX = padding - minX * scale;
+  const offsetY = (canvas.height / 2) + ((-minY - (maxY - minY) / 2) * scale); // Center y=0 at canvas middle
 
   // Draw X and Y axes
   ctx.strokeStyle = '#000000';
   ctx.lineWidth = 1;
   ctx.setLineDash([]);
   
-  // X axis (horizontal)
+  // X axis (horizontal) at y=0
+  const zeroY = canvas.height - (0 * scale + offsetY);
   ctx.beginPath();
-  ctx.moveTo(padding, canvas.height - offsetY);
-  ctx.lineTo(canvas.width - padding, canvas.height - offsetY);
+  ctx.moveTo(padding, zeroY);
+  ctx.lineTo(canvas.width - padding, zeroY);
   ctx.stroke();
   
-  // Y axis (vertical)
+  // Y axis (vertical) at x=0
+  const zeroX = 0 * scale + offsetX;
   ctx.beginPath();
-  ctx.moveTo(offsetX, canvas.height - padding);
-  ctx.lineTo(offsetX, padding);
+  ctx.moveTo(zeroX, padding);
+  ctx.lineTo(zeroX, canvas.height - padding);
   ctx.stroke();
 
   // Draw axis labels
@@ -315,37 +312,32 @@ function simulateToolpath() {
   ctx.textAlign = 'center';
   
   // X axis label
-  ctx.fillText('X', canvas.width - padding + 10, canvas.height - offsetY);
+  ctx.fillText('X', canvas.width - padding + 10, zeroY);
   
   // Y axis label
-  ctx.fillText('Y', offsetX, padding - 10);
+  ctx.fillText('Y', zeroX, padding - 10);
   
   // Draw tick marks and values
   const tickSize = 5;
-  const tickInterval = calculateTickInterval(Math.max(width, height));
   
   // X axis ticks
-  const startXTick = Math.ceil(minX / tickInterval) * tickInterval;
-  const endXTick = Math.floor(maxX / tickInterval) * tickInterval;
-  for (let x = startXTick; x <= endXTick; x += tickInterval) {
+  for (let x = minX; x <= maxX; x += tickInterval) {
     const canvasX = x * scale + offsetX;
     ctx.beginPath();
-    ctx.moveTo(canvasX, canvas.height - offsetY - tickSize);
-    ctx.lineTo(canvasX, canvas.height - offsetY + tickSize);
+    ctx.moveTo(canvasX, zeroY - tickSize);
+    ctx.lineTo(canvasX, zeroY + tickSize);
     ctx.stroke();
-    ctx.fillText(x.toFixed(1), canvasX, canvas.height - offsetY + 20);
+    ctx.fillText(x.toFixed(0), canvasX, zeroY + 20);
   }
   
   // Y axis ticks
-  const startYTick = Math.ceil(minY / tickInterval) * tickInterval;
-  const endYTick = Math.floor(maxY / tickInterval) * tickInterval;
-  for (let y = startYTick; y <= endYTick; y += tickInterval) {
+  for (let y = minY; y <= maxY; y += tickInterval) {
     const canvasY = canvas.height - (y * scale + offsetY);
     ctx.beginPath();
-    ctx.moveTo(offsetX - tickSize, canvasY);
-    ctx.lineTo(offsetX + tickSize, canvasY);
+    ctx.moveTo(zeroX - tickSize, canvasY);
+    ctx.lineTo(zeroX + tickSize, canvasY);
     ctx.stroke();
-    ctx.fillText(y.toFixed(1), offsetX - 20, canvasY + 4);
+    ctx.fillText(y.toFixed(0), zeroX - 20, canvasY + 4);
   }
 
   // Draw paths
@@ -362,7 +354,7 @@ function simulateToolpath() {
       const centerY = path.startY + path.j;
       const radius = Math.sqrt(path.i * path.i + path.j * path.j);
       
-      // Skip if radius is zero (no arc to draw)
+      // Skip if radius is zero
       if (radius < 0.001) {
         const warningDiv = document.getElementById('warningsDiv');
         warningDiv.textContent += `Invalid arc: Zero radius arc from (${path.startX}, ${path.startY}) to (${path.endX}, ${path.endY}). Skipping.\n`;
@@ -377,7 +369,7 @@ function simulateToolpath() {
       const endDistance = Math.sqrt(
         Math.pow(path.endX - centerX, 2) + Math.pow(path.endY - centerY, 2)
       );
-      if (Math.abs(startDistance - endDistance) > 0.1) { // Relaxed tolerance
+      if (Math.abs(startDistance - endDistance) > 0.1) {
         const warningDiv = document.getElementById('warningsDiv');
         warningDiv.textContent += `Invalid arc: Start and end points not equidistant from center. Start distance: ${startDistance.toFixed(3)}, End distance: ${endDistance.toFixed(3)}. Skipping arc from (${path.startX}, ${path.startY}) to (${path.endX}, ${path.endY})\n`;
         warningDiv.style.color = 'red';
@@ -385,29 +377,23 @@ function simulateToolpath() {
       }
       
       // Calculate angles with Y-axis inversion for canvas
-      let startAngle = Math.atan2(-(path.startY - centerY), path.startX - centerX); // Negate Y for canvas
-      let endAngle = Math.atan2(-(path.endY - centerY), path.endX - centerX); // Negate Y for canvas
+      let startAngle = Math.atan2(-(path.startY - centerY), path.startX - centerX);
+      let endAngle = Math.atan2(-(path.endY - centerY), path.endX - centerX);
       
-      // Handle full circle (start point equals end point)
+      // Handle full circle
       let isFullCircle = false;
       if (Math.abs(path.startX - path.endX) < 0.001 && Math.abs(path.startY - path.endY) < 0.001) {
         isFullCircle = true;
-        endAngle = path.mode === 'G02' ? startAngle + 2 * Math.PI : startAngle - 2 * Math.PI; // Full 360° sweep
+        endAngle = path.mode === 'G02' ? startAngle + 2 * Math.PI : startAngle - 2 * Math.PI;
       } else {
         // Normalize angles to [0, 2π)
         startAngle = (startAngle + 2 * Math.PI) % (2 * Math.PI);
         endAngle = (endAngle + 2 * Math.PI) % (2 * Math.PI);
         // Adjust angles based on direction
         if (path.mode === 'G02') {
-          // Clockwise: ensure endAngle > startAngle
-          if (endAngle <= startAngle) {
-            endAngle += 2 * Math.PI;
-          }
+          if (endAngle <= startAngle) endAngle += 2 * Math.PI;
         } else {
-          // Counterclockwise: ensure endAngle < startAngle
-          if (endAngle >= startAngle) {
-            endAngle -= 2 * Math.PI;
-          }
+          if (endAngle >= startAngle) endAngle -= 2 * Math.PI;
         }
       }
       
@@ -415,34 +401,58 @@ function simulateToolpath() {
       const centerCanvasX = centerX * scale + offsetX;
       const centerCanvasY = canvas.height - (centerY * scale + offsetY);
       
-      // Draw arc (clockwise for G02, counterclockwise for G03)
-      ctx.arc(centerCanvasX, centerCanvasY, radius * scale, startAngle, endAngle, path.mode === 'G03'); // true for counterclockwise
+      // Draw arc
+      ctx.arc(centerCanvasX, centerCanvasY, radius * scale, startAngle, endAngle, path.mode === 'G03');
       ctx.strokeStyle = '#00ff00'; // Green for arcs
-      ctx.stroke(); // Stroke the arc to make it visible
+      ctx.stroke();
       
       // Draw arrows if toggle is ON
       if (showArrows) {
-        const arrowSpacing = 0.5; // Angular spacing in radians (adjust for density)
+        const arrowSpacing = 0.5; // Angular spacing in radians
         const angleDiff = path.mode === 'G03' ? startAngle - endAngle : endAngle - startAngle;
-        const numArrows = Math.ceil(Math.abs(angleDiff) / arrowSpacing);
+        const numArrows = Math.max(1, Math.floor(Math.abs(angleDiff) / arrowSpacing));
         for (let i = 0; i < numArrows; i++) {
-          const t = i / Math.max(1, numArrows - 1);
+          const t = i / (numArrows === 1 ? 1 : numArrows - 1);
           const angle = path.mode === 'G03' 
             ? startAngle - t * (startAngle - endAngle)
             : startAngle + t * (endAngle - startAngle);
           const arrowX = centerX + radius * Math.cos(angle);
-          const arrowY = centerY - radius * Math.sin(angle); // Adjust for canvas Y-axis
-          const nextT = (i + 1) / Math.max(1, numArrows - 1);
-          const nextAngle = path.mode === 'G03'
-            ? startAngle - nextT * (startAngle - endAngle)
-            : startAngle + nextT * (endAngle - startAngle);
-          const nextX = centerX + radius * Math.cos(nextAngle);
-          const nextY = centerY - radius * Math.sin(nextAngle);
+          const arrowY = centerY - radius * Math.sin(angle);
+          
+          // Calculate tangent direction
+          const radiusX = arrowX - centerX;
+          const radiusY = arrowY - centerY;
+          let tangentX, tangentY;
+          if (path.mode === 'G02') {
+            tangentX = -radiusY;
+            tangentY = radiusX;
+          } else {
+            tangentX = radiusY;
+            tangentY = -radiusX;
+          }
+          
+          // Normalize tangent vector
+          const tangentLength = Math.sqrt(tangentX * tangentX + tangentY * tangentY);
+          if (tangentLength > 0) {
+            tangentX /= tangentLength;
+            tangentY /= tangentLength;
+          }
+          
+          // Define arrow length
+          const arrowLength = 5 / scale;
+          
+          // Calculate from and to points for the arrow
+          const fromX = arrowX + tangentX * arrowLength;
+          const fromY = arrowY + tangentY * arrowLength;
+          const toX = arrowX;
+          const toY = arrowY;
+          
+          // Draw arrow
           drawArrow(ctx, 
-            arrowX * scale + offsetX, 
-            canvas.height - (arrowY * scale + offsetY), 
-            nextX * scale + offsetX, 
-            canvas.height - (nextY * scale + offsetY), 
+            fromX * scale + offsetX, 
+            canvas.height - (fromY * scale + offsetY), 
+            toX * scale + offsetX, 
+            canvas.height - (toY * scale + offsetY), 
             scale
           );
         }
@@ -459,12 +469,12 @@ function simulateToolpath() {
         ctx.setLineDash([]); // Solid line for cutting
         ctx.strokeStyle = '#0000ff'; // Blue for cutting
       }
-      ctx.stroke(); // Stroke the linear path
+      ctx.stroke();
     }
 
     // Draw arrows for linear paths if toggle is ON
     if (showArrows && path.mode !== 'G02' && path.mode !== 'G03') {
-      const arrowSpacing = 50 * scale; // Adjust spacing based on scale
+      const arrowSpacing = 50 * scale;
       const length = Math.sqrt(Math.pow(endCanvasX - startCanvasX, 2) + Math.pow(endCanvasY - startCanvasY, 2));
       const numArrows = Math.max(1, Math.floor(length / arrowSpacing));
       for (let i = 1; i <= numArrows; i++) {

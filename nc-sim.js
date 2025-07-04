@@ -167,15 +167,55 @@ function clearCanvas() {
 }
 
 function drawArrow(ctx, fromX, fromY, toX, toY, scale) {
-  const headlen = 10 * scale; // Arrowhead length
-  const angle = Math.atan2(toY - fromY, toX - fromX);
+  const headlen = 5 * scale; // Arrow head length proportional to scale
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const angle = Math.atan2(dy, dx);
   
   ctx.beginPath();
-  ctx.moveTo(toX, toY);
+  ctx.moveTo(fromX, fromY); // Base of the arrow
   ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
-  ctx.moveTo(toX, toY);
+  ctx.moveTo(fromX, fromY);
   ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
   ctx.stroke();
+}
+
+function calculateArcCenter(startX, startY, endX, endY, r, mode) {
+  const dx = endX - startX;
+  const dy = endY - startY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  const radius = Math.abs(r);
+
+  // Validate arc distance
+  if (distance > 2 * radius) {
+    const warningDiv = document.getElementById('warningsDiv');
+    warningDiv.textContent += `Invalid arc: Distance (${distance.toFixed(3)}) exceeds 2R (${(2 * radius).toFixed(3)}) from (${startX}, ${startY}) to (${endX}, ${endY}). Skipping.\n`;
+    warningDiv.style.color = 'red';
+    return null;
+  }
+
+  // Calculate the two possible arc centers
+  const midX = (startX + endX) / 2;
+  const midY = (startY + endY) / 2;
+  const q = Math.sqrt(radius * radius - (distance / 2) * (distance / 2));
+  
+  // For positive R, choose the shortest arc; for negative R, choose the longest arc
+  let sign = r >= 0 ? -1 : 1; // Invert sign logic: positive R uses the inner center, negative R uses the outer
+  if (Math.abs(distance - 2 * radius) < 0.001) {
+    // Semicircle case
+    sign = mode === 'G02' ? -1 : 1; // Clockwise uses inner, counterclockwise uses outer
+  }
+
+  // Calculate perpendicular vector
+  const perpX = -dy;
+  const perpY = dx;
+  const perpLength = Math.sqrt(perpX * perpX + perpY * perpY);
+  if (perpLength < 0.001) return null;
+
+  const centerX = midX + sign * q * perpX / perpLength;
+  const centerY = midY + sign * q * perpY / perpLength;
+
+  return [centerX, centerY];
 }
 
 function simulateToolpath() {
@@ -203,7 +243,9 @@ function simulateToolpath() {
     if (!line || line.startsWith('(') || line.startsWith('%') || line.startsWith('O')) return;
 
     const tokens = line.split(/\s+/);
-    let x = currentX, y = currentY, i = 0, j = 0, mode = currentMode; // Default i, j to 0
+    let x = currentX, y = currentY, i = 0, j = 0, r = null, mode = currentMode;
+    let hasR = false;
+    let hasIJ = false;
 
     tokens.forEach(token => {
       if (token.startsWith('G')) {
@@ -218,13 +260,27 @@ function simulateToolpath() {
         y = parseFloat(token.substring(1));
       } else if (token.startsWith('I')) {
         i = parseFloat(token.substring(1));
+        hasIJ = true;
       } else if (token.startsWith('J')) {
         j = parseFloat(token.substring(1));
+        hasIJ = true;
+      } else if (token.startsWith('R')) {
+        r = parseFloat(token.substring(1));
+        hasR = true;
       }
     });
 
+    // Warning for R and I/J coexistence
+    if ((mode === 'G02' || mode === 'G03') && hasR && hasIJ) {
+      const warningDiv = document.getElementById('warningsDiv');
+      warningDiv.textContent += `Warning: Both R and I/J values detected in G${mode.slice(1)} command. Ignoring I/J values and using R.\n`;
+      warningDiv.style.color = 'red';
+      i = 0;
+      j = 0;
+    }
+
     if (!isNaN(x) && !isNaN(y)) {
-      paths.push({ startX: currentX, startY: currentY, endX: x, endY: y, i, j, mode });
+      paths.push({ startX: currentX, startY: currentY, endX: x, endY: y, i, j, r, mode });
       // Update bounds based on rules
       if (mode === 'G00' || mode === 'G01') {
         minX = Math.min(minX, x);
@@ -232,14 +288,38 @@ function simulateToolpath() {
         minY = Math.min(minY, y);
         maxY = Math.max(maxY, y);
       } else if (mode === 'G02' || mode === 'G03') {
-        const centerX = currentX + i;
-        const centerY = currentY + j;
-        const radius = Math.sqrt(i * i + j * j);
-        if (radius >= 0.001) { // Skip invalid arcs
-          minX = Math.min(minX, centerX - radius);
-          maxX = Math.max(maxX, centerX + radius);
-          minY = Math.min(minY, centerY - radius);
-          maxY = Math.max(maxY, centerY + radius);
+        if (hasR) {
+          const radius = Math.abs(r);
+          const dx = x - currentX;
+          const dy = y - currentY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          // Validate arc distance
+          if (distance > 2 * radius) {
+            const warningDiv = document.getElementById('warningsDiv');
+            warningDiv.textContent += `Invalid arc: Distance (${distance.toFixed(3)}) exceeds 2R (${(2 * radius).toFixed(3)}) from (${currentX}, ${currentY}) to (${x}, ${y}). Skipping.\n`;
+            warningDiv.style.color = 'red';
+            return;
+          }
+          // Calculate bounding box for arc
+          const center = calculateArcCenter(currentX, currentY, x, y, r, mode);
+          if (center) {
+            const centerX = center[0];
+            const centerY = center[1];
+            minX = Math.min(minX, centerX - radius);
+            maxX = Math.max(maxX, centerX + radius);
+            minY = Math.min(minY, centerY - radius);
+            maxY = Math.max(maxY, centerY + radius);
+          }
+        } else if (hasIJ) {
+          const centerX = currentX + i;
+          const centerY = currentY + j;
+          const radius = Math.sqrt(i * i + j * j);
+          if (radius >= 0.001) { // Skip invalid arcs
+            minX = Math.min(minX, centerX - radius);
+            maxX = Math.max(maxX, centerX + radius);
+            minY = Math.min(minY, centerY - radius);
+            maxY = Math.max(maxY, centerY + radius);
+          }
         }
       }
       currentX = x;
@@ -349,43 +429,88 @@ function simulateToolpath() {
     const endCanvasX = path.endX * scale + offsetX;
     const endCanvasY = canvas.height - (path.endY * scale + offsetY);
     if (path.mode === 'G02' || path.mode === 'G03') {
-      // Calculate arc parameters
-      const centerX = path.startX + path.i;
-      const centerY = path.startY + path.j;
-      const radius = Math.sqrt(path.i * path.i + path.j * path.j);
-      
-      // Skip if radius is zero
-      if (radius < 0.001) {
-        const warningDiv = document.getElementById('warningsDiv');
-        warningDiv.textContent += `Invalid arc: Zero radius arc from (${path.startX}, ${path.startY}) to (${path.endX}, ${path.endY}). Skipping.\n`;
-        warningDiv.style.color = 'red';
-        return;
-      }
-      
-      // Validate arc
-      const startDistance = Math.sqrt(
-        Math.pow(path.startX - centerX, 2) + Math.pow(path.startY - centerY, 2)
-      );
-      const endDistance = Math.sqrt(
-        Math.pow(path.endX - centerX, 2) + Math.pow(path.endY - centerY, 2)
-      );
-      if (Math.abs(startDistance - endDistance) > 0.1) {
-        const warningDiv = document.getElementById('warningsDiv');
-        warningDiv.textContent += `Invalid arc: Start and end points not equidistant from center. Start distance: ${startDistance.toFixed(3)}, End distance: ${endDistance.toFixed(3)}. Skipping arc from (${path.startX}, ${path.startY}) to (${path.endX}, ${path.endY})\n`;
-        warningDiv.style.color = 'red';
-        return;
-      }
-      
-      // Calculate angles with Y-axis inversion for canvas
-      let startAngle = Math.atan2(-(path.startY - centerY), path.startX - centerX);
-      let endAngle = Math.atan2(-(path.endY - centerY), path.endX - centerX);
-      
-      // Handle full circle
-      let isFullCircle = false;
-      if (Math.abs(path.startX - path.endX) < 0.001 && Math.abs(path.startY - path.endY) < 0.001) {
-        isFullCircle = true;
-        endAngle = path.mode === 'G02' ? startAngle + 2 * Math.PI : startAngle - 2 * Math.PI;
+      let centerX, centerY, radius, startAngle, endAngle;
+      if (path.r !== null) {
+        // R syntax
+        const dx = path.endX - path.startX;
+        const dy = path.endY - path.startY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        radius = Math.abs(path.r);
+        
+        // Skip if radius is zero
+        if (radius < 0.001) {
+          const warningDiv = document.getElementById('warningsDiv');
+          warningDiv.textContent += `Invalid arc: Zero radius arc from (${path.startX}, ${path.startY}) to (${path.endX}, ${path.endY}). Skipping.\n`;
+          warningDiv.style.color = 'red';
+          return;
+        }
+        
+        // Calculate arc center
+        const center = calculateArcCenter(path.startX, path.startY, path.endX, path.endY, path.r, path.mode);
+        if (!center) return;
+        centerX = center[0];
+        centerY = center[1];
+        
+        // Calculate angles with Y-axis inversion for canvas
+        startAngle = Math.atan2(-(path.startY - centerY), path.startX - centerX);
+        endAngle = Math.atan2(-(path.endY - centerY), path.endX - centerX);
+        
+        // Determine arc direction and angles
+        if (Math.abs(path.startX - path.endX) < 0.001 && Math.abs(path.startY - path.endY) < 0.001) {
+          // Full circle
+          endAngle = path.mode === 'G02' ? startAngle + 2 * Math.PI : startAngle - 2 * Math.PI;
+        } else {
+          // Normalize angles to [0, 2π)
+          startAngle = (startAngle + 2 * Math.PI) % (2 * Math.PI);
+          endAngle = (endAngle + 2 * Math.PI) % (2 * Math.PI);
+          // Adjust angles based on R sign and arc length
+          const angleDiff = (endAngle - startAngle + 2 * Math.PI) % (2 * Math.PI);
+          if (path.r > 0) {
+            // Shortest arc
+            if (angleDiff > Math.PI) {
+              if (path.mode === 'G02') endAngle -= 2 * Math.PI;
+              else endAngle += 2 * Math.PI;
+            }
+          } else {
+            // Longest arc
+            if (angleDiff < Math.PI) {
+              if (path.mode === 'G02') endAngle += 2 * Math.PI;
+              else endAngle -= 2 * Math.PI;
+            }
+          }
+        }
       } else {
+        // I/J syntax
+        centerX = path.startX + path.i;
+        centerY = path.startY + path.j;
+        radius = Math.sqrt(path.i * path.i + path.j * path.j);
+        
+        // Skip if radius is zero
+        if (radius < 0.001) {
+          const warningDiv = document.getElementById('warningsDiv');
+          warningDiv.textContent += `Invalid arc: Zero radius arc from (${path.startX}, ${path.startY}) to (${path.endX}, ${path.endY}). Skipping.\n`;
+          warningDiv.style.color = 'red';
+          return;
+        }
+        
+        // Validate arc
+        const startDistance = Math.sqrt(
+          Math.pow(path.startX - centerX, 2) + Math.pow(path.startY - centerY, 2)
+        );
+        const endDistance = Math.sqrt(
+          Math.pow(path.endX - centerX, 2) + Math.pow(path.endY - centerY, 2)
+        );
+        if (Math.abs(startDistance - endDistance) > 0.1) {
+          const warningDiv = document.getElementById('warningsDiv');
+          warningDiv.textContent += `Invalid arc: Start and end points not equidistant from center. Start distance: ${startDistance.toFixed(3)}, End distance: ${endDistance.toFixed(3)}. Skipping arc from (${path.startX}, ${path.startY}) to (${path.endX}, ${path.endY})\n`;
+          warningDiv.style.color = 'red';
+          return;
+        }
+        
+        // Calculate angles with Y-axis inversion for canvas
+        startAngle = Math.atan2(-(path.startY - centerY), path.startX - centerX);
+        endAngle = Math.atan2(-(path.endY - centerY), path.endX - centerX);
+        
         // Normalize angles to [0, 2π)
         startAngle = (startAngle + 2 * Math.PI) % (2 * Math.PI);
         endAngle = (endAngle + 2 * Math.PI) % (2 * Math.PI);
@@ -397,11 +522,9 @@ function simulateToolpath() {
         }
       }
       
-      // Transform to canvas coordinates
+      // Draw arc
       const centerCanvasX = centerX * scale + offsetX;
       const centerCanvasY = canvas.height - (centerY * scale + offsetY);
-      
-      // Draw arc
       ctx.arc(centerCanvasX, centerCanvasY, radius * scale, startAngle, endAngle, path.mode === 'G03');
       ctx.strokeStyle = '#00ff00'; // Green for arcs
       ctx.stroke();
@@ -419,16 +542,16 @@ function simulateToolpath() {
           const arrowX = centerX + radius * Math.cos(angle);
           const arrowY = centerY - radius * Math.sin(angle);
           
-          // Calculate tangent direction
-          const radiusX = arrowX - centerX;
-          const radiusY = arrowY - centerY;
+          // Calculate tangent direction (corrected for arc direction)
+          const radiusX = Math.cos(angle);
+          const radiusY = -Math.sin(angle); // Y-axis inversion
           let tangentX, tangentY;
           if (path.mode === 'G02') {
-            tangentX = -radiusY;
-            tangentY = radiusX;
-          } else {
-            tangentX = radiusY;
+            tangentX = radiusY; // Clockwise tangent (corrected)
             tangentY = -radiusX;
+          } else {
+            tangentX = -radiusY; // Counterclockwise tangent (corrected)
+            tangentY = radiusX;
           }
           
           // Normalize tangent vector
@@ -441,18 +564,19 @@ function simulateToolpath() {
           // Define arrow length
           const arrowLength = 5 / scale;
           
-          // Calculate from and to points for the arrow
+          // Calculate from and to points for the arrow (base at arc, pointing along tangent)
           const fromX = arrowX + tangentX * arrowLength;
           const fromY = arrowY + tangentY * arrowLength;
           const toX = arrowX;
           const toY = arrowY;
           
           // Draw arrow
+          ctx.strokeStyle = '#00ff00'; // Match arc color
           drawArrow(ctx, 
-            fromX * scale + offsetX, 
-            canvas.height - (fromY * scale + offsetY), 
             toX * scale + offsetX, 
             canvas.height - (toY * scale + offsetY), 
+            fromX * scale + offsetX, 
+            canvas.height - (fromY * scale + offsetY), 
             scale
           );
         }
@@ -470,18 +594,25 @@ function simulateToolpath() {
         ctx.strokeStyle = '#0000ff'; // Blue for cutting
       }
       ctx.stroke();
-    }
-
-    // Draw arrows for linear paths if toggle is ON
-    if (showArrows && path.mode !== 'G02' && path.mode !== 'G03') {
-      const arrowSpacing = 50 * scale;
-      const length = Math.sqrt(Math.pow(endCanvasX - startCanvasX, 2) + Math.pow(endCanvasY - startCanvasY, 2));
-      const numArrows = Math.max(1, Math.floor(length / arrowSpacing));
-      for (let i = 1; i <= numArrows; i++) {
-        const t = i / (numArrows + 1);
-        const arrowX = startCanvasX + t * (endCanvasX - startCanvasX);
-        const arrowY = startCanvasY + t * (endCanvasY - startCanvasY);
-        drawArrow(ctx, arrowX, arrowY, endCanvasX, endCanvasY, scale);
+      
+      // Draw arrows for linear paths if toggle is ON
+      if (showArrows && path.mode !== 'G02' && path.mode !== 'G03') {
+        const arrowSpacing = 50 * scale;
+        const length = Math.sqrt(Math.pow(endCanvasX - startCanvasX, 2) + Math.pow(endCanvasY - startCanvasY, 2));
+        const numArrows = Math.max(1, Math.floor(length / arrowSpacing));
+        for (let i = 1; i <= numArrows; i++) {
+          const t = i / (numArrows + 1);
+          const arrowX = startCanvasX + t * (endCanvasX - startCanvasX);
+          const arrowY = startCanvasY + t * (endCanvasY - startCanvasY);
+          // Draw arrow from start to end (correct direction)
+          drawArrow(ctx, 
+            arrowX, 
+            arrowY, 
+            arrowX + (endCanvasX - startCanvasX) / length * 10 / scale, 
+            arrowY + (endCanvasY - startCanvasY) / length * 10 / scale, 
+            scale
+          );
+        }
       }
     }
   });
@@ -595,12 +726,6 @@ document.getElementById('saveFileBtn').addEventListener('click', function() {
   } catch (error) {
     console.error('Error saving file:', error);
     alert('Error saving file. See console for details.');
-  }
-});
-
-document.getElementById('clearFileBtn').addEventListener('click', function() {
-  if (confirm('Are you sure you want to clear the current file? This action cannot be undone.')) {
-    resetFileInput();
   }
 });
 

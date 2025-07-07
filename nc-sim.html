@@ -8,13 +8,11 @@
 </head>
 <body>
   <h1>NC Toolpath Simulator</h1>
-  <p>Rev: 035</p>
-  <p>Build: 001</p>
-  <p>Mode: Production</p>
+  <p>Rev: 055</p>
 
   <div class="file-input-wrapper">
     <input type="file" id="fileInput">
-    <span id="fileNameDisplay" class="file-name-display">No file selected</span>
+    <span id="fileNameDisplay">No file selected</span>
   </div>
 
   <div class="file-stats">
@@ -46,18 +44,19 @@
     </select>
     <button id="applyScaleBtn">Apply Scale</button>
   </div>
-  <div>
+
+  <div class="controls">
     <label for="arrowToggle">Show Arrows: </label>
     <input type="checkbox" id="arrowToggle">
   </div>
 
   <div class="canvas-wrapper">
-    <canvas id="toolpathCanvas" width="800" height="1000"></canvas>
+    <canvas id="toolpathCanvas" width="800" height="600"></canvas>
   </div>
 
-  <div id="warningsDiv" style="color: red; font-family: Arial, sans-serif; font-size: 14px; margin-top: 5px;"></div>
+  <div id="warningsDiv"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  <script src="nc-sim.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

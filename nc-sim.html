@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NC Toolpath Simulator</title>
+  <link rel="stylesheet" href="nc-sim.css">
+</head>
+<body>
+  <h1>NC Toolpath Simulator</h1>
+  <p>Rev: 058</p>
+
+  <div class="file-input-wrapper">
+    <input type="file" id="fileInput">
+    <span id="fileNameDisplay">No file selected</span>
+  </div>
+
+  <div class="file-stats">
+    <span id="lineCount">Lines: 0</span>
+    <span id="charCount">Characters: 0</span>
+  </div>
+
+  <div class="controls">
+    <button id="simulateBtn">Simulate</button>
+    <button id="undoBtn" disabled>Undo</button>
+    <button id="saveFileBtn">Save File</button>
+    <button id="clearFileBtn">Clear File</button>
+  </div>
+
+  <div class="content-wrapper">
+    <textarea id="contentTextarea"></textarea>
+  </div>
+
+  <div class="scale-controls">
+    <label for="scaleSelect">Scale:</label>
+    <select id="scaleSelect">
+      <option value="0.001">0.001</option>
+      <option value="0.01">0.01</option>
+      <option value="0.1">0.1</option>
+      <option value="1" selected>1</option>
+      <option value="10">10</option>
+      <option value="100">100</option>
+      <option value="1000">1000</option>
+    </select>
+    <button id="applyScaleBtn">Apply Scale</button>
+  </div>
+
+  <div class="controls">
+    <label for="arrowToggle">Show Arrows: </label>
+    <input type="checkbox" id="arrowToggle">
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="toolpathCanvas" width="800" height="600"></canvas>
+  </div>
+
+  <div id="warningsDiv"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

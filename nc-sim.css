@@ -82,27 +82,26 @@ input[type="file"] {
   font-size: 14px;
   line-height: 1.5;
 }
-.scale-controls {
+.zoom-controls {
   margin: 15px 0;
   font-family: sans-serif;
 }
-.scale-controls select {
-  padding: 8px;
-  margin-right: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-family: sans-serif;
-}
-.scale-controls button {
+.zoom-controls button {
   padding: 8px 15px;
+  margin-right: 10px;
   background-color: #e3f2fd;
   border: 1px solid #bbb;
   border-radius: 4px;
   cursor: pointer;
   font-family: sans-serif;
+  width: 40px;
+  text-align: center;
 }
-.scale-controls button:hover {
+.zoom-controls button:hover {
   background-color: #d0ebff;
+}
+.zoom-controls button#fitBtn {
+  width: auto;
 }
 .canvas-wrapper {
   margin-top: 15px;
@@ -110,4 +109,62 @@ input[type="file"] {
 #toolpathCanvas {
   border: 1px solid #ccc;
   background-color: white;
+  width: 800px;
+  height: 800px;
 }
+@media (max-width: 480px) {
+  #toolpathCanvas {
+    width: 360px;
+    height: 360px;
+  }
+  #contentTextarea {
+    width: 100%;
+    font-size: 12px;
+  }
+  #fileInput {
+    font-size: 1rem;
+    margin-left: 10px;
+  }
+  .file-name-display {
+    margin-left: 10px;
+    font-size: 0.8rem;
+  }
+  .controls button {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+  .zoom-controls button {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    width: 35px;
+  }
+  .zoom-controls button#fitBtn {
+    width: auto;
+    padding: 6px 10px;
+  }
+}
+#rangesDiv {
+  margin: 10px 0;
+  padding: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  font-size: 0.5rem;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+#warningsDiv {
+  margin: 10px 0;
+  padding: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  font-size: 0.5rem;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+.checkbox-controls {
+  margin: 10px 0;
+  font-family: sans-serif;
+}
+.checkbox-controls label {
+  margin-right: 15px;
+  }

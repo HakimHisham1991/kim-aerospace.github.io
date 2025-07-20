@@ -8,57 +8,46 @@
 </head>
 <body>
   <h1>NC Toolpath Simulator</h1>
-  <div>Rev: 099</div>
-
+  <div>Rev: 108</div>
   <div class="file-input-wrapper">
     <input type="file" id="fileInput">
-    <span class="file-name-display" id="fileNameDisplay">No file selected</span>
+    <span id="fileNameDisplay" class="file-name-display">No file selected</span>
   </div>
-
   <div class="file-stats">
     <span id="lineCount">Lines: 0</span>
     <span id="charCount">Characters: 0</span>
   </div>
-
   <div class="controls">
     <button id="simulateBtn">Simulate</button>
     <button id="undoBtn" disabled>Undo</button>
     <button id="saveFileBtn">Save File</button>
     <button id="clearFileBtn">Clear File</button>
   </div>
-
   <div class="content-wrapper">
-    <textarea id="contentTextarea"></textarea>
+    <textarea id="contentTextarea" rows="10"></textarea>
   </div>
-
   <div class="zoom-controls">
     <button id="zoomInBtn">+</button>
     <button id="zoomOutBtn">-</button>
     <button id="homeBtn">🏠</button>
     <button id="fitBtn">FIT</button>
   </div>
-
-  <div class="zoom-controls">
+  <div class="pan-controls">
     <button id="panUpBtn">↑</button>
     <button id="panDownBtn">↓</button>
     <button id="panLeftBtn">←</button>
     <button id="panRightBtn">→</button>
   </div>
-
   <div class="checkbox-controls">
     <label><input type="checkbox" id="arrowToggle"> Show Arrows</label>
     <label><input type="checkbox" id="drawRangeToggle"> Draw Range</label>
     <label><input type="checkbox" id="drawBoundToggle"> Draw Bound</label>
   </div>
-
-  <div id="rangesDiv"></div>
-  <div id="warningsDiv"></div>
-
   <div class="canvas-wrapper">
     <canvas id="toolpathCanvas"></canvas>
   </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <div id="rangesDiv"></div>
+  <div id="warningsDiv"></div>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -1,7 +1,15 @@
-import { displayContent, updateFileStats, setDisplayContent } from './fileHandler.js';
+console.log('✅ loaded: ' + new URL(import.meta.url).pathname.split('/').pop());
+
+import { displayContent, updateFileStats, setDisplayContent, setOriginalFileName } from './fileHandler.js';
 import { simulateToolpath } from './main.js';
-import { setBounds, calculateFitBounds, clearCanvas, currentBounds } from './canvasRenderer.js';
+import { setBounds, calculateFitBounds, currentBounds } from './canvasRenderer.js';
 import { parseGcode } from './gcodeParser.js';
+import { clearCanvas } from './canvasUtils.js';
+
+/**
+ * Manages UI interactions and state
+ * @module uiControls
+ */
 
 export let contentHistory = [];
 export let currentScale = 1;
@@ -9,42 +17,57 @@ export let showArrows = false;
 export let drawBound = false;
 export let drawRange = false;
 
+/**
+ * Saves content to history
+ * @param {string} content - Content to save
+ */
 export function saveToHistory(content) {
   contentHistory.push(content);
   document.getElementById('undoBtn').disabled = contentHistory.length <= 1;
 }
 
-export function setupEventListeners(handleFileContent, resetFileInput, saveFile, clearCanvas) {
+/**
+ * Sets up UI event listeners
+ * @param {Function} handleFileContent - File content handler
+ * @param {Function} resetFileInput - Reset file input handler
+ * @param {Function} saveFile - Save file handler
+ * @param {Function} clearCanvasCallback - Clear canvas handler
+ */
+export function setupEventListeners(handleFileContent, resetFileInput, saveFile, clearCanvasCallback) {
+  const canvas = document.getElementById('toolpathCanvas');
+  
   document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) {
-      resetFileInput(clearCanvas);
+      resetFileInput(clearCanvasCallback);
       return;
     }
+    setOriginalFileName(file.name);
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = (e) => {
       try {
         handleFileContent(e.target.result, simulateToolpath);
+        document.getElementById('fileNameDisplay').textContent = file.name;
       } catch (error) {
         console.error('Error processing file:', error);
-        alert('Error processing file. See console for details.');
-        resetFileInput(clearCanvas);
+        alert('Error processing file.');
+        resetFileInput(clearCanvasCallback);
       }
     };
-    reader.onerror = function(error) {
+    reader.onerror = (error) => {
       console.error('FileReader error:', error);
-      alert('Error reading file. See console for details.');
-      resetFileInput(clearCanvas);
+      alert('Error reading file.');
+      resetFileInput(clearCanvasCallback);
     };
     reader.readAsArrayBuffer(file);
   });
 
-  document.getElementById('simulateBtn').addEventListener('click', function() {
-    clearCanvas();
+  document.getElementById('simulateBtn').addEventListener('click', () => {
+    clearCanvasCallback();
     simulateToolpath();
   });
 
-  document.getElementById('undoBtn').addEventListener('click', function() {
+  document.getElementById('undoBtn').addEventListener('click', () => {
     if (contentHistory.length > 1) {
       contentHistory.pop();
       const newContent = contentHistory[contentHistory.length - 1];
@@ -52,39 +75,34 @@ export function setupEventListeners(handleFileContent, resetFileInput, saveFile,
       document.getElementById('contentTextarea').value = newContent;
       updateFileStats(newContent);
       document.getElementById('undoBtn').disabled = contentHistory.length <= 1;
-      clearCanvas();
+      clearCanvasCallback();
       document.getElementById('warningsDiv').textContent = '';
       simulateToolpath();
     }
   });
 
-  document.getElementById('saveFileBtn').addEventListener('click', function() {
-    saveFile();
-  });
+  document.getElementById('saveFileBtn').addEventListener('click', saveFile);
+  document.getElementById('clearFileBtn').addEventListener('click', () => resetFileInput(clearCanvasCallback));
 
-  document.getElementById('clearFileBtn').addEventListener('click', function() {
-    resetFileInput(clearCanvas);
-  });
-
-  document.getElementById('arrowToggle').addEventListener('change', function(e) {
+  document.getElementById('arrowToggle').addEventListener('change', (e) => {
     showArrows = e.target.checked;
-    clearCanvas();
+    clearCanvasCallback();
     simulateToolpath();
   });
 
-  document.getElementById('drawRangeToggle').addEventListener('change', function(e) {
+  document.getElementById('drawRangeToggle').addEventListener('change', (e) => {
     drawRange = e.target.checked;
-    clearCanvas();
+    clearCanvasCallback();
     simulateToolpath();
   });
 
-  document.getElementById('drawBoundToggle').addEventListener('change', function(e) {
+  document.getElementById('drawBoundToggle').addEventListener('change', (e) => {
     drawBound = e.target.checked;
-    clearCanvas();
+    clearCanvasCallback();
     simulateToolpath();
   });
 
-  document.getElementById('zoomInBtn').addEventListener('click', function() {
+  document.getElementById('zoomInBtn').addEventListener('click', () => {
     if (!displayContent) {
       alert('Please load a file first');
       return;
@@ -101,11 +119,11 @@ export function setupEventListeners(handleFileContent, resetFileInput, saveFile,
       minY: centerY - newRangeY / 2,
       maxY: centerY + newRangeY / 2
     });
-    clearCanvas();
+    clearCanvasCallback();
     simulateToolpath();
   });
 
-  document.getElementById('zoomOutBtn').addEventListener('click', function() {
+  document.getElementById('zoomOutBtn').addEventListener('click', () => {
     if (!displayContent) {
       alert('Please load a file first');
       return;
@@ -122,91 +140,50 @@ export function setupEventListeners(handleFileContent, resetFileInput, saveFile,
       minY: centerY - newRangeY / 2,
       maxY: centerY + newRangeY / 2
     });
-    clearCanvas();
+    clearCanvasCallback();
     simulateToolpath();
   });
 
-  document.getElementById('homeBtn').addEventListener('click', function() {
+  document.getElementById('homeBtn').addEventListener('click', () => {
     if (!displayContent) {
       alert('Please load a file first');
       return;
     }
     currentScale = 1;
-    setBounds({
-      minX: -100,
-      maxX: 100,
-      minY: -100,
-      maxY: 100
-    });
-    clearCanvas();
+    setBounds({ minX: -100, maxX: 100, minY: -100, maxY: 100 });
+    clearCanvasCallback();
     simulateToolpath();
   });
 
-  document.getElementById('panUpBtn').addEventListener('click', function() {
-  const yRange = currentBounds.maxY - currentBounds.minY;
-  let panDistance = yRange * 0.1;
-  panDistance = Math.max(0.001, panDistance); // Remove upper limit of 100
-  console.debug(`Pan Up: yRange=${yRange}, panDistance=${panDistance}`);
-  setBounds({
-    minX: currentBounds.minX,
-    maxX: currentBounds.maxX,
-    minY: currentBounds.minY + panDistance, // Move view up (increase Y)
-    maxY: currentBounds.maxY + panDistance
+  const panButtons = [
+    { id: 'panUpBtn', dx: 0, dy: 0.1 },
+    { id: 'panDownBtn', dx: 0, dy: -0.1 },
+    { id: 'panLeftBtn', dx: -0.1, dy: 0 },
+    { id: 'panRightBtn', dx: 0.1, dy: 0 }
+  ];
+
+  panButtons.forEach(({ id, dx, dy }) => {
+    document.getElementById(id).addEventListener('click', () => {
+      if (!displayContent) {
+        alert('Please load a file first');
+        return;
+      }
+      const xRange = currentBounds.maxX - currentBounds.minX;
+      const yRange = currentBounds.maxY - currentBounds.minY;
+      const panDistanceX = Math.max(0.001, xRange * Math.abs(dx));
+      const panDistanceY = Math.max(0.001, yRange * Math.abs(dy));
+      setBounds({
+        minX: currentBounds.minX + (dx > 0 ? panDistanceX : dx < 0 ? -panDistanceX : 0),
+        maxX: currentBounds.maxX + (dx > 0 ? panDistanceX : dx < 0 ? -panDistanceX : 0),
+        minY: currentBounds.minY + (dy > 0 ? panDistanceY : dy < 0 ? -panDistanceY : 0),
+        maxY: currentBounds.maxY + (dy > 0 ? panDistanceY : dy < 0 ? -panDistanceY : 0)
+      });
+      clearCanvasCallback();
+      simulateToolpath();
+    });
   });
-  clearCanvas();
-  simulateToolpath();
-});
 
-document.getElementById('panDownBtn').addEventListener('click', function() {
-  const yRange = currentBounds.maxY - currentBounds.minY;
-  let panDistance = yRange * 0.1;
-  panDistance = Math.max(0.001, panDistance); // Remove upper limit of 100
-  console.debug(`Pan Down: yRange=${yRange}, panDistance=${panDistance}`);
-  setBounds({
-    minX: currentBounds.minX,
-    maxX: currentBounds.maxX,
-    minY: currentBounds.minY - panDistance, // Move view down (decrease Y)
-    maxY: currentBounds.maxY - panDistance
-  });
-  clearCanvas();
-  simulateToolpath();
-});
-
-document.getElementById('panLeftBtn').addEventListener('click', function() {
-  const xRange = currentBounds.maxX - currentBounds.minX;
-  let panDistance = xRange * 0.1;
-  panDistance = Math.max(0.001, panDistance); // Remove upper limit of 100
-  console.debug(`Pan Left: xRange=${xRange}, panDistance=${panDistance}`);
-  setBounds({
-    minX: currentBounds.minX - panDistance,
-    maxX: currentBounds.maxX - panDistance,
-    minY: currentBounds.minY,
-    maxY: currentBounds.maxY
-  });
-  clearCanvas();
-  simulateToolpath();
-});
-
-document.getElementById('panRightBtn').addEventListener('click', function() {
-  const xRange = currentBounds.maxX - currentBounds.minX;
-  let panDistance = xRange * 0.1;
-  panDistance = Math.max(0.001, panDistance); // Remove upper limit of 100
-  console.debug(`Pan Right: xRange=${xRange}, panDistance=${panDistance}`);
-  setBounds({
-    minX: currentBounds.minX + panDistance,
-    maxX: currentBounds.maxX + panDistance,
-    minY: currentBounds.minY,
-    maxY: currentBounds.maxY
-  });
-  clearCanvas();
-  simulateToolpath();
-});
-
-
-
-
-
-  document.getElementById('fitBtn').addEventListener('click', function() {
+  document.getElementById('fitBtn').addEventListener('click', () => {
     if (!displayContent) {
       alert('Please load a file first');
       return;
@@ -215,9 +192,8 @@ document.getElementById('panRightBtn').addEventListener('click', function() {
     currentScale = 1;
     const canvas = document.getElementById('toolpathCanvas');
     const aspectRatio = canvas.width / canvas.height;
-    const bounds = calculateFitBounds(minX, maxX, minY, maxY, aspectRatio);
-    setBounds(bounds);
-    clearCanvas();
+    setBounds(calculateFitBounds(minX, maxX, minY, maxY, aspectRatio));
+    clearCanvasCallback();
     simulateToolpath();
   });
-}
+        }

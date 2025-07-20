@@ -1,8 +1,19 @@
+console.log('✅ loaded: ' + new URL(import.meta.url).pathname.split('/').pop());
+
 import { handleFileContent, updateFileStats, resetFileInput, saveFile, displayContent, setDisplayContent } from './fileHandler.js';
 import { parseGcode } from './gcodeParser.js';
-import { renderToolpath, clearCanvas } from './canvasRenderer.js';
+import { renderToolpath } from './canvasRenderer.js';
+import { clearCanvas } from './canvasUtils.js';
 import { setupEventListeners, contentHistory, currentScale, showArrows, drawBound, drawRange, saveToHistory } from './uiControls.js';
 
+/**
+ * Main application logic
+ * @module main
+ */
+
+/**
+ * Simulates the toolpath
+ */
 export function simulateToolpath() {
   if (!displayContent) {
     alert('Please load a file first');
@@ -15,11 +26,13 @@ export function simulateToolpath() {
     updateFileStats(currentContent);
   }
   const { paths, minX, maxX, minY, maxY } = parseGcode(displayContent);
-  clearCanvas(); // Ensure canvas is cleared before rendering
+  const canvas = document.getElementById('toolpathCanvas');
+  clearCanvas(canvas);
   renderToolpath(displayContent, paths, minX, maxX, minY, maxY, currentScale, showArrows, drawBound, drawRange);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  setupEventListeners(handleFileContent, resetFileInput, saveFile, clearCanvas);
+  const canvas = document.getElementById('toolpathCanvas');
+  setupEventListeners(handleFileContent, resetFileInput, saveFile, () => clearCanvas(canvas));
   updateFileStats('');
 });

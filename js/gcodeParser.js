@@ -1,37 +1,123 @@
+console.log('✅ loaded: ' + new URL(import.meta.url).pathname.split('/').pop());
+
 import { validCodes } from './gcodeConfig.js';
 
+/**
+ * Parses G-code and calculates arc geometry
+ * @module gcodeParser
+ */
+
+/**
+ * Calculates the center of an arc
+ * @param {number} startX - Starting X coordinate
+ * @param {number} startY - Starting Y coordinate
+ * @param {number} endX - Ending X coordinate
+ * @param {number} endY - Ending Y coordinate
+ * @param {number} r - Radius
+ * @param {string} mode - G02 or G03
+ * @returns {Array|null} Center coordinates [x, y] or null if invalid
+ */
 export function calculateArcCenter(startX, startY, endX, endY, r, mode) {
   const dx = endX - startX;
   const dy = endY - startY;
   const distance = Math.sqrt(dx * dx + dy * dy);
   const radius = Math.abs(r);
   if (distance > 2 * radius) {
-    const warningDiv = document.getElementById('warningsDiv');
-    warningDiv.textContent += `Invalid arc: Distance (${distance.toFixed(3)}) exceeds 2R (${(2 * radius).toFixed(3)}) from (${startX}, ${startY}) to (${endX}, ${endY}). Skipping.\n`;
-    warningDiv.style.color = 'red';
+    document.getElementById('warningsDiv').textContent += `Invalid arc: Distance (${distance.toFixed(3)}) exceeds 2R (${(2 * radius).toFixed(3)}) from (${startX}, ${startY}) to (${endX}, ${endY}). Skipping.\n`;
+    document.getElementById('warningsDiv').classList.add('error');
     return null;
   }
   const midX = (startX + endX) / 2;
   const midY = (startY + endY) / 2;
   const q = Math.sqrt(radius * radius - (distance / 2) * (distance / 2));
-  let sign;
-  if (mode === 'G02') {
-    sign = r >= 0 ? -1 : 1; // G02: R > 0 (minor, -1), R < 0 (major, 1)
-  } else {
-    sign = r >= 0 ? 1 : -1; // G03: R > 0 (minor, 1), R < 0 (major, -1)
-  }
-  if (Math.abs(distance - 2 * radius) < 0.001) {
-    sign = mode === 'G02' ? -1 : 1; // 180-degree arc: G02 (-1), G03 (1)
-  }
+  const sign = (mode === 'G02' ? (r >= 0 ? -1 : 1) : (r >= 0 ? 1 : -1)) * (Math.abs(distance - 2 * radius) < 0.001 ? (mode === 'G02' ? -1 : 1) : 1);
   const perpX = -dy;
   const perpY = dx;
   const perpLength = Math.sqrt(perpX * perpX + perpY * perpY);
   if (perpLength < 0.001) return null;
-  const centerX = midX + sign * q * perpX / perpLength;
-  const centerY = midY + sign * q * perpY / perpLength;
-  return [centerX, centerY];
+  return [midX + sign * q * perpX / perpLength, midY + sign * q * perpY / perpLength];
 }
 
+/**
+ * Calculates arc bounds
+ * @param {number} startX - Starting X coordinate
+ * @param {number} startY - Starting Y coordinate
+ * @param {number} endX - Ending X coordinate
+ * @param {number} endY - Ending Y coordinate
+ * @param {number} centerX - Center X coordinate
+ * @param {number} centerY - Center Y coordinate
+ * @param {number} radius - Arc radius
+ * @param {string} mode - G02 or G03
+ * @param {boolean} isMajor - Whether it's a major arc
+ * @returns {Object} Bounds {minX, maxX, minY, maxY}
+ */
+export function calculateArcBounds(startX, startY, endX, endY, centerX, centerY, radius, mode, isMajor) {
+  const theta1 = Math.atan2(startY - centerY, startX - centerX);
+  let theta2 = Math.atan2(endY - centerY, endX - centerX);
+  let theta1Norm = (theta1 + 2 * Math.PI) % (2 * Math.PI);
+  let theta2Norm = (theta2 + 2 * Math.PI) % (2 * Math.PI);
+
+  const isFullCircle = Math.abs(startX - endX) < 0.001 && Math.abs(startY - endY) < 0.001;
+  let thetaStart, thetaEnd;
+  if (isFullCircle) {
+    thetaStart = 0;
+    thetaEnd = 2 * Math.PI;
+  } else if (isMajor) {
+    thetaStart = mode === 'G02' ? theta2Norm : theta1Norm;
+    thetaEnd = (mode === 'G02' ? theta1Norm : theta2Norm) + (mode === 'G02' ? (theta1Norm <= theta2Norm ? 2 * Math.PI : 0) : (theta2Norm <= theta1Norm ? 2 * Math.PI : 0));
+  } else {
+    thetaStart = theta1Norm;
+    thetaEnd = mode === 'G02' ? theta2Norm - (theta2Norm > theta1Norm ? 2 * Math.PI : 0) : theta2Norm + (theta2Norm < theta1Norm ? 2 * Math.PI : 0);
+  }
+
+  const isAngleInArc = (angle) => {
+    angle = (angle + 2 * Math.PI) % (2 * Math.PI);
+    let start = thetaStart, end = thetaEnd;
+    if (isFullCircle) return true;
+    if (mode === 'G02') {
+      if (isMajor) {
+        if (start >= end) end += 2 * Math.PI;
+        angle = angle < start ? angle + 2 * Math.PI : angle;
+        return angle >= start && angle <= end;
+      }
+      if (start < end) start += 2 * Math.PI;
+      angle = angle < end ? angle + 2 * Math.PI : angle;
+      return angle <= start && angle >= end;
+    }
+    if (start > end) end += 2 * Math.PI;
+    angle = angle < start ? angle + 2 * Math.PI : angle;
+    return angle >= start && angle <= end;
+  };
+
+  let minX = Math.min(startX, endX);
+  let maxX = Math.max(startX, endX);
+  let minY = Math.min(startY, endY);
+  let maxY = Math.max(startY, endY);
+
+  const cardinalAngles = [
+    { angle: 0, x: centerX + radius, y: centerY },
+    { angle: Math.PI / 2, x: centerX, y: centerY + radius },
+    { angle: Math.PI, x: centerX - radius, y: centerY },
+    { angle: 3 * Math.PI / 2, x: centerX, y: centerY - radius }
+  ];
+
+  cardinalAngles.forEach(({ angle, x, y }) => {
+    if (isAngleInArc(angle)) {
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+  });
+
+  return { minX, maxX, minY, maxY };
+}
+
+/**
+ * Parses G-code into paths
+ * @param {string} displayContent - G-code content
+ * @returns {Object} Parsed paths and bounds
+ */
 export function parseGcode(displayContent) {
   let currentX = 0, currentY = 0;
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -39,67 +125,37 @@ export function parseGcode(displayContent) {
   let currentMode = 'G00';
   const lines = displayContent.split(/\r?\n/);
 
-  console.debug(`Parsing ${lines.length} lines of G-code`);
-
   lines.forEach((line, index) => {
     line = line.replace(/\(.*?\)/g, '').trim();
-    if (!line) {
-      console.debug(`Line ${index + 1}: Skipped (empty or comment)`);
-      return;
-    }
+    if (!line) return;
 
     const codeMatch = line.match(/(^|\s)([GM][0-9.]+)/i);
-    if (!codeMatch) {
-      console.debug(`Line ${index + 1}: "${line}" (no G/M code found)`);
-      return;
-    }
-    const code = codeMatch[2].toUpperCase();
-    if (!validCodes.has(code)) {
-      console.debug(`Line ${index + 1}: "${line}" (invalid code: ${code})`);
-      return;
-    }
-    console.debug(`Line ${index + 1}: "${line}" (code: ${code})`);
+    if (!codeMatch || !validCodes.has(codeMatch[2].toUpperCase())) return;
 
     const tokens = line.split(/\s+/);
     let x = currentX, y = currentY, i = 0, j = 0, r = null, mode = currentMode;
-    let hasR = false;
-    let hasIJ = false;
+    let hasR = false, hasIJ = false;
+
     tokens.forEach(token => {
+      token = token.toUpperCase();
       if (token.startsWith('G')) {
-        const code = token.toUpperCase();
-        if (code === 'G00' || code === 'G0') mode = 'G00';
-        else if (code === 'G01' || code === 'G1') mode = 'G01';
-        else if (code === 'G02' || code === 'G2') mode = 'G02';
-        else if (code === 'G03' || code === 'G3') mode = 'G03';
-      } else if (token.startsWith('X')) {
-        x = parseFloat(token.substring(1));
-      } else if (token.startsWith('Y')) {
-        y = parseFloat(token.substring(1));
-      } else if (token.startsWith('I')) {
-        i = parseFloat(token.substring(1));
-        hasIJ = true;
-      } else if (token.startsWith('J')) {
-        j = parseFloat(token.substring(1));
-        hasIJ = true;
-      } else if (token.startsWith('R')) {
-        r = parseFloat(token.substring(1));
-        hasR = true;
-      }
+        if (token === 'G00' || token === 'G0') mode = 'G00';
+        else if (token === 'G01' || token === 'G1') mode = 'G01';
+        else if (token === 'G02' || token === 'G2') mode = 'G02';
+        else if (token === 'G03' || token === 'G3') mode = 'G03';
+      } else if (token.startsWith('X')) x = parseFloat(token.substring(1));
+      else if (token.startsWith('Y')) y = parseFloat(token.substring(1));
+      else if (token.startsWith('I')) { i = parseFloat(token.substring(1)); hasIJ = true; }
+      else if (token.startsWith('J')) { j = parseFloat(token.substring(1)); hasIJ = true; }
+      else if (token.startsWith('R')) { r = parseFloat(token.substring(1)); hasR = true; }
     });
 
-    if (isNaN(x) || isNaN(y)) {
-      console.debug(`Line ${index + 1}: Skipping due to invalid coordinates (x=${x}, y=${y})`);
-      return;
-    }
-
-    console.debug(`Parsed values for line ${index + 1}: mode=${mode}, x=${x}, y=${y}, i=${i}, j=${j}, r=${r}, hasIJ=${hasIJ}, hasR=${hasR}`);
+    if (isNaN(x) || isNaN(y)) return;
 
     if ((mode === 'G02' || mode === 'G03') && hasR && hasIJ) {
-      const warningDiv = document.getElementById('warningsDiv');
-      warningDiv.textContent += `Warning: Both R and I/J values detected in G${mode.slice(1)} command. Ignoring I/J values and using R.\n`;
-      warningDiv.style.color = 'red';
-      i = 0;
-      j = 0;
+      document.getElementById('warningsDiv').textContent += `Warning: Both R and I/J values in G${mode.slice(1)}. Using R.\n`;
+      document.getElementById('warningsDiv').classList.add('error');
+      i = j = 0;
     }
 
     paths.push({ startX: currentX, startY: currentY, endX: x, endY: y, i, j, r, mode });
@@ -110,47 +166,33 @@ export function parseGcode(displayContent) {
       minY = Math.min(minY, y);
       maxY = Math.max(maxY, y);
     } else if (mode === 'G02' || mode === 'G03') {
+      let centerX, centerY, radius, isMajor = false;
       if (hasR) {
-        const radius = Math.abs(r);
-        const dx = x - currentX;
-        const dy = y - currentY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance > 2 * radius) {
-          const warningDiv = document.getElementById('warningsDiv');
-          warningDiv.textContent += `Invalid arc: Distance (${distance.toFixed(3)}) exceeds 2R (${(2 * radius).toFixed(3)}) from (${currentX}, ${currentY}) to (${x}, ${y}). Skipping.\n`;
-          warningDiv.style.color = 'red';
-          paths.pop(); // Remove invalid arc
-          return;
-        }
+        radius = Math.abs(r);
+        isMajor = r < 0;
         const center = calculateArcCenter(currentX, currentY, x, y, r, mode);
-        if (center) {
-          const centerX = center[0];
-          const centerY = center[1];
-          minX = Math.min(minX, centerX - radius);
-          maxX = Math.max(maxX, centerX + radius);
-          minY = Math.min(minY, centerY - radius);
-          maxY = Math.max(maxY, centerY + radius);
-        } else {
-          paths.pop(); // Remove invalid arc
-          return;
-        }
+        if (!center) { paths.pop(); return; }
+        [centerX, centerY] = center;
       } else if (hasIJ) {
-        const centerX = currentX + i;
-        const centerY = currentY + j;
-        const radius = Math.sqrt(i * i + j * j);
-        if (radius >= 0.001) {
-          minX = Math.min(minX, centerX - radius);
-          maxX = Math.max(maxX, centerX + radius);
-          minY = Math.min(minY, centerY - radius);
-          maxY = Math.max(maxY, centerY + radius);
-        } else {
-          const warningDiv = document.getElementById('warningsDiv');
-          warningDiv.textContent += `Invalid arc: Zero radius (I=${i}, J=${j}) from (${currentX}, ${currentY}) to (${x}, ${y}). Skipping.\n`;
-          warningDiv.style.color = 'red';
-          paths.pop(); // Remove invalid arc
+        centerX = currentX + i;
+        centerY = currentY + j;
+        radius = Math.sqrt(i * i + j * j);
+        if (radius < 0.001) {
+          document.getElementById('warningsDiv').textContent += `Invalid arc: Zero radius (I=${i}, J=${j}) from (${currentX}, ${currentY}) to (${x}, ${y}). Skipping.\n`;
+          document.getElementById('warningsDiv').classList.add('error');
+          paths.pop();
           return;
         }
+      } else {
+        paths.pop();
+        return;
       }
+
+      const bounds = calculateArcBounds(currentX, currentY, x, y, centerX, centerY, radius, mode, isMajor);
+      minX = Math.min(minX, bounds.minX);
+      maxX = Math.max(maxX, bounds.maxX);
+      minY = Math.min(minY, bounds.minY);
+      maxY = Math.max(maxY, bounds.maxY);
     }
 
     currentX = x;
@@ -158,12 +200,11 @@ export function parseGcode(displayContent) {
     currentMode = mode;
   });
 
-  // Ensure bounds are valid
-  minX = isFinite(minX) ? minX : 0;
-  maxX = isFinite(maxX) ? maxX : 0;
-  minY = isFinite(minY) ? minY : 0;
-  maxY = isFinite(maxY) ? maxY : 0;
-
-  console.debug(`Parsed ${paths.length} paths, Bounds: X=(${minX}, ${maxX}), Y=(${minY}, ${maxY})`);
-  return { paths, minX, maxX, minY, maxY };
-}
+  return {
+    paths,
+    minX: isFinite(minX) ? minX : 0,
+    maxX: isFinite(maxX) ? maxX : 0,
+    minY: isFinite(minY) ? minY : 0,
+    maxY: isFinite(maxY) ? maxY : 0
+  };
+    }

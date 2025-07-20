@@ -5,7 +5,6 @@ body {
 }
 h1 {
   font-size: 1.5rem;
-  font-family: sans-serif;
 }
 input[type="file"] {
   margin-bottom: 10px;
@@ -15,8 +14,7 @@ input[type="file"] {
   padding: 8px;
   background: #e9ecef;
   border-radius: 4px;
-  font-size: 0.5rem;
-  font-family: sans-serif;
+  font-size: 0.9rem;
 }
 .file-stats span {
   display: block;
@@ -33,7 +31,6 @@ input[type="file"] {
   padding: 10px 15px;
   width: auto;
   margin-left: 20px;
-  font-family: sans-serif;
 }
 .file-name-display {
   font-size: 0.9rem;
@@ -43,28 +40,31 @@ input[type="file"] {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: block;
-  font-family: sans-serif;
 }
-.controls {
+.controls, .zoom-controls, .pan-controls, .checkbox-controls {
   margin: 15px 0;
-  font-family: sans-serif;
 }
-.controls button {
+.controls button, .zoom-controls button, .pan-controls button {
   padding: 8px 15px;
   margin-right: 10px;
   background-color: #e3f2fd;
   border: 1px solid #bbb;
   border-radius: 4px;
   cursor: pointer;
-  font-family: sans-serif;
 }
-.controls button:hover {
+.controls button:hover, .zoom-controls button:hover, .pan-controls button:hover {
   background-color: #d0ebff;
 }
 .controls button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+.zoom-controls button {
+  width: 40px;
+  text-align: center;
+}
+.zoom-controls button#fitBtn {
+  width: auto;
 }
 .content-wrapper {
   width: 100%;
@@ -82,27 +82,6 @@ input[type="file"] {
   font-size: 14px;
   line-height: 1.5;
 }
-.zoom-controls {
-  margin: 15px 0;
-  font-family: sans-serif;
-}
-.zoom-controls button {
-  padding: 8px 15px;
-  margin-right: 10px;
-  background-color: #e3f2fd;
-  border: 1px solid #bbb;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: sans-serif;
-  width: 40px;
-  text-align: center;
-}
-.zoom-controls button:hover {
-  background-color: #d0ebff;
-}
-.zoom-controls button#fitBtn {
-  width: auto;
-}
 .canvas-wrapper {
   margin-top: 15px;
 }
@@ -111,6 +90,18 @@ input[type="file"] {
   background-color: white;
   width: 800px;
   height: 800px;
+}
+#rangesDiv, #warningsDiv {
+  margin: 10px 0;
+  padding: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+#warningsDiv.error {
+  color: red;
 }
 @media (max-width: 480px) {
   #toolpathCanvas {
@@ -129,17 +120,14 @@ input[type="file"] {
     margin-left: 10px;
     font-size: 0.8rem;
   }
-  .controls button {
+  .controls button, .zoom-controls button, .pan-controls button {
     padding: 6px 10px;
     font-size: 0.9rem;
   }
   .zoom-controls button {
-    padding: 6px 10px;
-    font-size: 0.9rem;
     width: 35px;
   }
   .zoom-controls button#fitBtn {
-    width: auto;
     padding: 6px 10px;
   }
 }
@@ -167,4 +155,4 @@ input[type="file"] {
 }
 .checkbox-controls label {
   margin-right: 15px;
-  }
+}

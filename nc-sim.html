@@ -7,47 +7,122 @@
   <link rel="stylesheet" href="nc-sim.css">
 </head>
 <body>
-  <h1>NC Toolpath Simulator</h1>
-  <div>Rev: 108</div>
-  <div class="file-input-wrapper">
-    <input type="file" id="fileInput">
-    <span id="fileNameDisplay" class="file-name-display">No file selected</span>
+  <div class="content-wrapper">
+    <h2>NC Toolpath Simulator</h2>
+    <p>Rev: 214</p>
+
+    <div class="input-wrapper">
+      <input type="file" id="fileInput">
+      <div class="file-name-display" id="fileNameDisplay">No file selected</div>
+    </div>
+
+
   </div>
-  <div class="file-stats">
+  <div class="file-stats" id="fileStats">
     <span id="lineCount">Lines: 0</span>
     <span id="charCount">Characters: 0</span>
   </div>
-  <div class="controls">
-    <button id="simulateBtn">Simulate</button>
-    <button id="undoBtn" disabled>Undo</button>
-    <button id="saveFileBtn">Save File</button>
-    <button id="clearFileBtn">Clear File</button>
+
+
+    <div class="controls">
+      <button id="undoBtn" title="Undo">&#8630;</button>
+      <button id="saveFileBtn" title="Save File">&#128190;</button>
+      <button id="clearFileBtn" title="Clear File">&#10006;</button>
+      <button id="reloadBtn" title="Reload">&#8635;</button>
+    </div>
+
+    <div class="active-codes">
+      <div class="code-table-wrapper">
+        <h3>Active G-Codes</h3>
+        <table id="gcodeTable">
+          <tr><th>Group</th><th>Active Code</th></tr>
+          <tr><td>Motion</td><td id="gcodeMotion">G00</td></tr>
+          <tr><td>Plane</td><td id="gcodePlane">G17</td></tr>
+          <tr><td>Units</td><td id="gcodeUnits">G21</td></tr>
+          <tr><td>Distance Mode</td><td id="gcodeDistanceMode">G90</td></tr>
+          <tr><td>Feed Mode</td><td id="gcodeFeedMode">G94</td></tr>
+          <tr><td>Coordinate System</td><td id="gcodeCoordinateSystem">G54</td></tr>
+          <tr><td>Tool Offset</td><td id="gcodeToolOffset">G40</td></tr>
+          <tr><td>Tool Length</td><td id="gcodeToolLength">G49</td></tr>
+        </table>
+      </div>
+
+        <div class="code-table-wrapper">
+          <h3>Active M-Codes</h3>
+          <table id="mcodeTable">
+            <tr><th>Group</th><th>Active Code</th></tr>
+            <tr><td>Spindle</td><td id="mcodeSpindle">M05</td></tr>
+            <tr><td>Coolant</td><td id="mcodeCoolant">M09</td></tr>
+          </table>
+        </div>
+        
+      <div class="code-table-wrapper">
+        <h3>Absolute Position</h3>
+        <table id="axisTable">
+          <tr><th>Axis</th><th>Abs</th></tr>
+          <tr><td>X</td><td id="axisX">0.000</td></tr>
+          <tr><td>Y</td><td id="axisY">0.000</td></tr>
+          <tr><td>Z</td><td id="axisZ">0.000</td></tr>
+        </table>
+      </div>
+    </div>
+    
+    
+    
+    
+    
+    
+    
+
+    <h2>NC Program:</h2>
+    <div id="contentDiv" contenteditable="true"></div>
+
+    <div class="canvas-wrapper">
+      <canvas id="toolpathCanvas"></canvas>
+    </div>
+
+
+    <div class="controls">
+      <button id="playBtn" title="Play">▶</button>
+      <button id="pauseBtn" title="Pause">⏸</button>
+      <button id="resetBtn" title="Reset">⏮</button>
+      <button id="stepBackwardBtn" title="Step Backward">⏪</button>
+      <button id="stepForwardBtn" title="Step Forward">⏩</button>
+      <button id="seekEndBtn" title="Seek End">⏭</button>
+    </div>
+
+
+
+
+
+    <div class="zoom-controls">
+      <button id="zoomInBtn" title="Zoom In">+</button>
+      <button id="zoomOutBtn" title="Zoom Out">-</button>
+      <button id="homeBtn" title="Home">🏠</button>
+      <button id="fitBtn" title="Fit">FIT</button>
+    </div>
+
+    <div class="pan-controls">
+      <button id="panUpBtn" title="Pan Up">↑</button>
+      <button id="panDownBtn" title="Pan Down">↓</button>
+      <button id="panLeftBtn" title="Pan Left">←</button>
+      <button id="panRightBtn" title="Pan Right">→</button>
+    </div>
+
+    <div class="checkbox-controls">
+      <label><input type="checkbox" id="arrowToggle"> Arrows</label>
+      <label><input type="checkbox" id="drawRangeToggle"> Range</label>
+      <label><input type="checkbox" id="drawBoundToggle"> Bound</label>
+    </div>
+
+    <div id="rangesDiv"></div>
+    <div id="infosDiv"></div>
+    <div id="warningsDiv"></div>
+    <div id="debugDiv"></div>
+
+    <button id="clearDebugBtn">Clear Debug</button>
   </div>
-  <div class="content-wrapper">
-    <textarea id="contentTextarea" rows="10"></textarea>
-  </div>
-  <div class="zoom-controls">
-    <button id="zoomInBtn">+</button>
-    <button id="zoomOutBtn">-</button>
-    <button id="homeBtn">🏠</button>
-    <button id="fitBtn">FIT</button>
-  </div>
-  <div class="pan-controls">
-    <button id="panUpBtn">↑</button>
-    <button id="panDownBtn">↓</button>
-    <button id="panLeftBtn">←</button>
-    <button id="panRightBtn">→</button>
-  </div>
-  <div class="checkbox-controls">
-    <label><input type="checkbox" id="arrowToggle"> Show Arrows</label>
-    <label><input type="checkbox" id="drawRangeToggle"> Draw Range</label>
-    <label><input type="checkbox" id="drawBoundToggle"> Draw Bound</label>
-  </div>
-  <div class="canvas-wrapper">
-    <canvas id="toolpathCanvas"></canvas>
-  </div>
-  <div id="rangesDiv"></div>
-  <div id="warningsDiv"></div>
-  <script type="module" src="js/main.js"></script>
+
+  <script type="module" src="nc-sim.js"></script>
 </body>
-</html>
+      </html>

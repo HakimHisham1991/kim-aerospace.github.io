@@ -3,8 +3,9 @@ body {
   padding: 20px;
   background: #f5f5f5;
 }
-h1 {
-  font-size: 1.5rem;
+.content-wrapper h2 {
+  font-size: 0.9rem;
+  margin-bottom: 10px;
 }
 input[type="file"] {
   margin-bottom: 10px;
@@ -20,7 +21,7 @@ input[type="file"] {
   display: block;
   margin-bottom: 4px;
 }
-.file-input-wrapper {
+.file-input, .input-wrapper {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -44,43 +45,241 @@ input[type="file"] {
 .controls, .zoom-controls, .pan-controls, .checkbox-controls {
   margin: 15px 0;
 }
-.controls button, .zoom-controls button, .pan-controls button {
-  padding: 8px 15px;
-  margin-right: 10px;
+.controls button, .zoom-controls button, .pan-controls button, #clearDebugBtn {
+  padding: 12px 20px;
+  margin-right: 12px;
   background-color: #e3f2fd;
   border: 1px solid #bbb;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 1.2rem;
 }
-.controls button:hover, .zoom-controls button:hover, .pan-controls button:hover {
+.controls button:hover, .zoom-controls button:hover, .pan-controls button:hover, #clearDebugBtn:hover {
   background-color: #d0ebff;
 }
-.controls button:disabled {
+.controls button:disabled, #clearDebugBtn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
 .zoom-controls button {
-  width: 40px;
+  width: 48px;
   text-align: center;
 }
 .zoom-controls button#fitBtn {
   width: auto;
 }
+.controls button#reloadBtn {
+  width: 48px;
+  text-align: center;
+}
+.controls button#clearFileBtn {
+  color: red;
+  width: 48px;
+  text-align: center;
+}
+.controls button#clearFileBtn:hover {
+  background-color: #d0ebff;
+}
+.controls button#clearFileBtn:disabled {
+  color: #666;
+  background-color: #ccc;
+}
+.checkbox-controls {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+.checkbox-controls label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  gap: 10px;
+}
+.checkbox-controls input[type="checkbox"] {
+  width: 50px;
+  height: 50px;
+  margin-right: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  border: 2px solid #666;
+  border-radius: 4px;
+  background-color: white;
+}
+.checkbox-controls input[type="checkbox"]:checked {
+  background-color: #007bff;
+  position: relative;
+}
+.checkbox-controls input[type="checkbox"]:checked::after {
+  content: '\2713';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 16px;
+}
+.checkbox-controls input[type="checkbox"]:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.active-codes {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: nowrap;
+}
+.code-table-wrapper {
+  flex: 1;
+  min-width: 150px;
+}
+.code-table-wrapper h3 {
+  font-size: 0.6rem;
+  margin-bottom: 8px;
+}
+#gcodeTable, #mcodeTable, #axisTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #e9ecef;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+#gcodeTable th, #gcodeTable td, #mcodeTable th, #mcodeTable td, #axisTable th, #axisTable td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+#gcodeTable th, #mcodeTable th, #axisTable th {
+  background-color: #d0ebff;
+  font-weight: bold;
+}
+@media (max-width: 480px) {
+  .checkbox-controls {
+    gap: 8px;
+  }
+  .checkbox-controls input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 0;
+  }
+  .checkbox-controls label {
+    font-size: 1.1rem;
+    gap: 8px;
+  }
+  .checkbox-controls input[type="checkbox"]:checked::after {
+    font-size: 14px;
+  }
+  .active-codes {
+    gap: 5px;
+    flex-wrap: nowrap;
+  }
+  .code-table-wrapper {
+    min-width: 120px;
+  }
+  #gcodeTable, #mcodeTable, #axisTable {
+    font-size: 0.4rem;
+  }
+  #gcodeTable th, #gcodeTable td, #mcodeTable th, #mcodeTable td, #axisTable th, #axisTable td {
+    padding: 4px;
+  }
+  #contentDiv {
+    width: 100%;
+    font-size: 8px;
+    overflow-y: scroll !important;
+  }
+  #contentDiv::-webkit-scrollbar {
+    width: 10px;
+  }
+  #fileInput {
+    font-size: 1rem;
+    margin-left: 10px;
+  }
+  .file-name-display {
+    margin-left: 10px;
+    font-size: 0.8rem;
+  }
+  .controls button, .zoom-controls button, .pan-controls button, #clearDebugBtn {
+    padding: 8px 12px;
+    font-size: 1rem;
+  }
+  .zoom-controls button {
+    width: 40px;
+  }
+  .zoom-controls button#fitBtn {
+    padding: 8px 12px;
+  }
+  .controls button#reloadBtn {
+    width: 40px;
+  }
+  .controls button#clearFileBtn {
+    width: 40px;
+  }
+  #playBtn, #pauseBtn, #resetBtn, #stepBackwardBtn, #stepForwardBtn, #seekEndBtn {
+    width: 40px;
+  }
+  #playBtn i, #pauseBtn i, #resetBtn i, #stepBackwardBtn i, #stepForwardBtn i, #seekEndBtn i {
+    font-size: 1rem;
+  }
+  .checkbox-controls label {
+    font-size: 1.1rem;
+    margin-right: 12px;
+  }
+  .checkbox-controls input[type="checkbox"] {
+    transform: scale(1.3);
+    margin-right: 6px;
+  }
+  .tooltip {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+    gap: 4px;
+  }
+}
 .content-wrapper {
   width: 100%;
   margin-top: 15px;
+  overflow: visible !important;
 }
-#contentTextarea {
+#contentDiv {
   width: 90%;
-  height: 200px;
+  height: 80px;
   font-family: monospace;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
   resize: vertical;
   background-color: white;
-  font-size: 14px;
+  font-size: 8px;
   line-height: 1.5;
+  overflow-y: scroll !important;
+  position: relative;
+  z-index: 1;
+}
+#contentDiv::-webkit-scrollbar {
+  width: 12px;
+  display: block;
+}
+#contentDiv::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+#contentDiv::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+#contentDiv::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+#contentDiv[contenteditable="false"] {
+  background-color: #f5f5f5;
+  cursor: text;
+}
+#contentDiv .line {
+  display: block;
 }
 .canvas-wrapper {
   margin-top: 15px;
@@ -91,68 +290,37 @@ input[type="file"] {
   width: 800px;
   height: 800px;
 }
-#rangesDiv, #warningsDiv {
+#infosDiv, #warningsDiv, #debugDiv, #rangesDiv {
   margin: 10px 0;
   padding: 8px;
   background: #e9ecef;
   border-radius: 4px;
-  font-size: 0.9rem;
+  font-size: 0.5rem;
   font-family: monospace;
   white-space: pre-wrap;
 }
 #warningsDiv.error {
   color: red;
 }
+#infosDiv {
+  color: #0055ff;
+}
+#rangesDiv {
+  color: green;
+}
+.tooltip {
+  position: absolute;
+  background: #333;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
 @media (max-width: 480px) {
   #toolpathCanvas {
     width: 360px;
     height: 360px;
   }
-  #contentTextarea {
-    width: 100%;
-    font-size: 12px;
-  }
-  #fileInput {
-    font-size: 1rem;
-    margin-left: 10px;
-  }
-  .file-name-display {
-    margin-left: 10px;
-    font-size: 0.8rem;
-  }
-  .controls button, .zoom-controls button, .pan-controls button {
-    padding: 6px 10px;
-    font-size: 0.9rem;
-  }
-  .zoom-controls button {
-    width: 35px;
-  }
-  .zoom-controls button#fitBtn {
-    padding: 6px 10px;
-  }
-}
-#rangesDiv {
-  margin: 10px 0;
-  padding: 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  font-size: 0.5rem;
-  font-family: monospace;
-  white-space: pre-wrap;
-}
-#warningsDiv {
-  margin: 10px 0;
-  padding: 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  font-size: 0.5rem;
-  font-family: monospace;
-  white-space: pre-wrap;
-}
-.checkbox-controls {
-  margin: 10px 0;
-  font-family: sans-serif;
-}
-.checkbox-controls label {
-  margin-right: 15px;
 }

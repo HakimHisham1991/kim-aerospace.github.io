@@ -51,6 +51,18 @@ export function handleM198(state) {
 }
 
 /**
+ * Handles M06 (Tool Change) and updates tool number
+ * @param {Object} state - Current machine state
+ * @param {Object} tokenData - Token data from processTokens
+ */
+export function handleM06(state, tokenData) {
+  console.debug(`M06 (Tool Change) activated - tool number set to ${tokenData.t || 'T00'}`);
+  if (tokenData.hasT) {
+    state.activeMCodes.toolNumber = `T${String(tokenData.t).padStart(2, '0')}`;
+  }
+}
+
+/**
  * Handles M-code logic and updates state
  * @param {Object} state - Current machine state
  * @param {string} mCode - M-code to process
@@ -74,9 +86,21 @@ export function handleMCode(state, mCode, tokenData, index) {
     if (mCode === 'M98') handleM98(state);
     if (mCode === 'M99') handleM99(state);
     if (mCode === 'M198') handleM198(state);
+  } else if (mCode === 'M06') {
+    if (tokenData.hasT) {
+      state.activeMCodes.toolChange = mCode; // Non-modal, reset after each line
+      handleM06(state, tokenData);
+    } else {
+      isValid = false;
+      const warningsDiv = document.getElementById('warningsDiv');
+      if (warningsDiv) {
+        warningsDiv.textContent += `Error: M06 (Tool Change) requires TXX parameter at line ${index + 1}.\n`;
+        warningsDiv.classList.add('error');
+      }
+    }
   } else if (mCode === 'M30') {
     state.activeGCodes = { ...defaultGCodes }; // Reset to defaults, including G80
-    state.activeMCodes = { ...defaultMCodes, stop: null, subprogram: null };
+    state.activeMCodes = { ...defaultMCodes, stop: null, subprogram: null, toolChange: null };
     state.previousCoordinateSystem = 'G54'; // Reset previous coordinate system
     state.currentF = 0;
     state.currentS = 0;

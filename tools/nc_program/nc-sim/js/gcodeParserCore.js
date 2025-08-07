@@ -35,7 +35,7 @@ export function parseGcode(displayContent) {
     currentF: 0, // Initialize feed rate
     currentS: 0, // Initialize spindle speed
     activeGCodes: { ...defaultGCodes },
-    activeMCodes: { ...defaultMCodes, stop: null, subprogram: null }, // Initialize subprogram as null
+    activeMCodes: { ...defaultMCodes, stop: null, subprogram: null, toolChange: null }, // Initialize toolChange as null
     previousCoordinateSystem: 'G54' // Track previous coordinate system for G53 reversion
   };
   const paths = [];
@@ -58,12 +58,17 @@ export function parseGcode(displayContent) {
     if (!tokenData.isValid) {
       paths.push(createPath(state, tokenData, index));
       console.debug(`Added invalid path at line ${index + 1}: mode=${tokenData.gCode || state.currentMode}, isValid=false`);
+      if (document.getElementById('playBtn').classList.contains('active')) {
+        document.getElementById('pauseBtn').click(); // Pause simulation on error
+        console.debug(`Paused simulation due to error at line ${index + 1}`);
+      }
       return;
     }
 
-    // Reset stop and subprogram M-codes for each line unless explicitly set
+    // Reset stop, subprogram, and toolChange M-codes for each line unless explicitly set
     state.activeMCodes.stop = null;
     state.activeMCodes.subprogram = null;
+    state.activeMCodes.toolChange = null;
 
     // Handle M-codes from tokenData
     if (tokenData.mCode) {
@@ -79,14 +84,20 @@ export function parseGcode(displayContent) {
       });
 
       mCodes.forEach((mCode, mIndex) => {
+        console.debug(`Processing M-code ${mCode} at line ${index + 1}`);
         const mCodeResult = handleMCode(state, mCode, tokenData, index);
         const pathTokenData = { ...tokenData, mCode, isValid: mCodeResult.isValid };
-        paths.push(createPath(state, pathTokenData, index));
-        console.debug(`Added M-code path at line ${index + 1}: mode=null, mCode=${mCode}, isValid=${mCodeResult.isValid}, s=${pathTokenData.s}, hasS=${pathTokenData.hasS}`);
-        // Update state for M-codes with S parameter (e.g., M03 S1000)
-        if (pathTokenData.hasS) {
+        const path = createPath(state, pathTokenData, index);
+        paths.push(path);
+        console.debug(`Added M-code path at line ${index + 1}: mode=null, mCode=${mCode}, isValid=${mCodeResult.isValid}, s=${pathTokenData.s}, hasS=${pathTokenData.hasS}, t=${pathTokenData.t}, hasT=${pathTokenData.hasT}, path.mCodes=${JSON.stringify(path.mCodes)}`);
+        // Update state for M-codes with parameters
+        if (pathTokenData.hasS || (pathTokenData.hasT && mCode === 'M06')) {
           state = updateState(state, pathTokenData, null);
-          console.debug(`Updated state for M-code with S at line ${index + 1}: currentS=${state.currentS}`);
+          console.debug(`Updated state for M-code at line ${index + 1}: currentS=${state.currentS}, toolNumber=${state.activeMCodes.toolNumber}`);
+        }
+        if (!mCodeResult.isValid && document.getElementById('playBtn').classList.contains('active')) {
+          document.getElementById('pauseBtn').click(); // Pause simulation on M06 error
+          console.debug(`Paused simulation due to M06 error at line ${index + 1}`);
         }
       });
       return; // Skip G-code processing if M-codes were found
@@ -106,7 +117,7 @@ export function parseGcode(displayContent) {
     // Create path and update bounds
     const path = createPath(state, { ...tokenData, gCode }, index);
     paths.push(path);
-    console.debug(`Created path at line ${index + 1}: feedMode=${state.activeGCodes.feedMode}, distanceMode=${state.activeGCodes.distanceMode}, coordinateSystem=${state.activeGCodes.coordinateSystem}, toolOffset=${state.activeGCodes.toolOffset}, toolLength=${state.activeGCodes.toolLength}, retractPlane=${state.activeGCodes.retractPlane}, rotation=${state.activeGCodes.rotation}, holeCycle=${state.activeGCodes.holeCycle}, mode=${gCode}, isValid=${path.isValid}, s=${path.s}, hasS=${tokenData.hasS}`);
+    console.debug(`Created path at line ${index + 1}: feedMode=${state.activeGCodes.feedMode}, distanceMode=${state.activeGCodes.distanceMode}, coordinateSystem=${state.activeGCodes.coordinateSystem}, toolOffset=${state.activeGCodes.toolOffset}, toolLength=${state.activeGCodes.toolLength}, retractPlane=${state.activeGCodes.retractPlane}, rotation=${state.activeGCodes.rotation}, holeCycle=${state.activeGCodes.holeCycle}, mode=${gCode}, isValid=${path.isValid}, s=${path.s}, hasS=${tokenData.hasS}, t=${path.t}, hasT=${tokenData.hasT}`);
 
     // Update state and bounds
     if (path.isValid) {

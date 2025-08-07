@@ -196,7 +196,7 @@ input[type="file"] {
     font-size: 0.2rem;
   }
   #gcodeTable th, #gcodeTable td, #mcodeTable th, #mcodeTable td, #axisTable th, #axisTable td, #feedSpeedTable th, #feedSpeedTable td {
-    padding: 3px; /* Further reduced padding for mobile */
+    padding: 2px;
   }
   #contentDiv {
     width: 100%;
@@ -338,4 +338,4 @@ input[type="file"] {
     width: 360px;
     height: 360px;
   }
-  }
+}

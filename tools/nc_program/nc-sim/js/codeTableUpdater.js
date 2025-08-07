@@ -22,11 +22,12 @@ import { defaultGCodes, defaultMCodes } from './gcodeConfig.js';
  */
 export function updateCodeTables(paths, pathIndex, feedMode = null, distanceMode = null, coordinateSystem = null, toolOffset = null, toolLength = null, retractPlane = null, rotation = null, holeCycle = null) {
   let activeGCodes = { ...defaultGCodes };
-  let activeMCodes = { ...defaultMCodes, stop: null, subprogram: null };
+  let activeMCodes = { ...defaultMCodes, stop: null, subprogram: null, toolChange: null }; // Ensure toolChange is null by default
   
   if (paths.length > 0 && pathIndex >= 0 && pathIndex < paths.length) {
     activeGCodes = { ...paths[pathIndex].gCodes };
-    activeMCodes = { ...paths[pathIndex].mCodes };
+    activeMCodes = { ...paths[pathIndex].mCodes }; // Use mCodes directly, including toolChange
+    console.debug(`Path ${pathIndex} mCodes:`, paths[pathIndex].mCodes, `mCode: ${paths[pathIndex].mCode}`);
     if (feedMode && ['G93', 'G94', 'G95'].includes(feedMode)) {
       activeGCodes.feedMode = feedMode;
       console.debug(`Overriding feedMode to ${feedMode} at pathIndex ${pathIndex}`);
@@ -95,63 +96,75 @@ export function updateCodeTables(paths, pathIndex, feedMode = null, distanceMode
     }
   }
 
-  const gcodeIds = [
-    'gcodeMotion', 'gcodePlane', 'gcodeUnits', 'gcodeDistanceMode',
-    'gcodeFeedMode', 'gcodeCoordinateSystem', 'gcodeToolOffset', 'gcodeToolLength',
-    'gcodeRetractPlane', 'gcodeRotation', 'gcodeHoleCycle'
-  ];
+  // Update G-code table
+  const gcodeTable = document.getElementById('gcodeTable');
+  if (gcodeTable) {
+    const gcodeMapping = {
+      'gcodeMotion': 'motion',
+      'gcodePlane': 'plane',
+      'gcodeUnits': 'units',
+      'gcodeDistanceMode': 'distanceMode',
+      'gcodeFeedMode': 'feedMode',
+      'gcodeCoordinateSystem': 'coordinateSystem',
+      'gcodeToolOffset': 'toolOffset',
+      'gcodeToolLength': 'toolLength',
+      'gcodeRetractPlane': 'retractPlane',
+      'gcodeRotation': 'rotation',
+      'gcodeHoleCycle': 'holeCycle'
+    };
 
-  gcodeIds.forEach(id => {
-    const element = document.getElementById(id);
-    const key = id === 'gcodeFeedMode' ? 'feedMode' : 
-                id === 'gcodeDistanceMode' ? 'distanceMode' : 
-                id === 'gcodeCoordinateSystem' ? 'coordinateSystem' : 
-                id === 'gcodeToolOffset' ? 'toolOffset' : 
-                id === 'gcodeToolLength' ? 'toolLength' : 
-                id === 'gcodeRetractPlane' ? 'retractPlane' :
-                id === 'gcodeRotation' ? 'rotation' :
-                id === 'gcodeHoleCycle' ? 'holeCycle' :
-                id.replace(/^gcode/, '').toLowerCase();
-    if (element) {
-      let value = activeGCodes[key];
-      if (value === undefined) {
-        if (id === 'gcodeFeedMode') {
-          value = defaultGCodes.feedMode || 'G94';
-          console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
-        } else if (id === 'gcodeDistanceMode') {
-          value = defaultGCodes.distanceMode || 'G90';
-          console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
-        } else if (id === 'gcodeCoordinateSystem') {
-          value = defaultGCodes.coordinateSystem || 'G54';
-          console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
-        } else if (id === 'gcodeToolOffset') {
-          value = defaultGCodes.toolOffset || 'G40';
-          console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
-        } else if (id === 'gcodeToolLength') {
-          value = defaultGCodes.toolLength || 'G49';
-          console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
-        } else if (id === 'gcodeRetractPlane') {
-          value = defaultGCodes.retractPlane || 'G98';
-          console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
-        } else if (id === 'gcodeRotation') {
-          value = defaultGCodes.rotation || 'G69';
-          console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
-        } else if (id === 'gcodeHoleCycle') {
-          value = defaultGCodes.holeCycle || 'G80';
-          console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
-        } else {
-          console.warn(`No value found for G-code key '${key}' in activeGCodes:`, activeGCodes);
-          value = defaultGCodes[key] || '';
+    Object.entries(gcodeMapping).forEach(([id, key]) => {
+      const element = document.getElementById(id);
+      if (element) {
+        let value = activeGCodes[key];
+        if (!value) {
+          if (id === 'gcodeMotion') {
+            value = defaultGCodes.motion || 'G00';
+            console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
+          } else if (id === 'gcodePlane') {
+            value = defaultGCodes.plane || 'G17';
+            console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
+          } else if (id === 'gcodeUnits') {
+            value = defaultGCodes.units || 'G21';
+            console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
+          } else if (id === 'gcodeDistanceMode') {
+            value = defaultGCodes.distanceMode || 'G90';
+            console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
+          } else if (id === 'gcodeFeedMode') {
+            value = defaultGCodes.feedMode || 'G94';
+            console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
+          } else if (id === 'gcodeCoordinateSystem') {
+            value = defaultGCodes.coordinateSystem || 'G54';
+            console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
+          } else if (id === 'gcodeToolOffset') {
+            value = defaultGCodes.toolOffset || 'G40';
+            console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
+          } else if (id === 'gcodeToolLength') {
+            value = defaultGCodes.toolLength || 'G49';
+            console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
+          } else if (id === 'gcodeRetractPlane') {
+            value = defaultGCodes.retractPlane || 'G98';
+            console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
+          } else if (id === 'gcodeRotation') {
+            value = defaultGCodes.rotation || 'G69';
+            console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
+          } else if (id === 'gcodeHoleCycle') {
+            value = defaultGCodes.holeCycle || 'G80';
+            console.debug(`No value found for G-code key '${key}' in activeGCodes, using fallback '${value}' at pathIndex ${pathIndex}`);
+          } else {
+            console.warn(`No value found for G-code key '${key}' in activeGCodes:`, activeGCodes);
+            value = defaultGCodes[key] || '';
+          }
         }
+        element.textContent = value;
+        if (id === 'gcodeFeedMode' || id === 'gcodeDistanceMode' || id === 'gcodeCoordinateSystem' || id === 'gcodeToolOffset' || id === 'gcodeToolLength' || id === 'gcodeRetractPlane' || id === 'gcodeRotation' || id === 'gcodeHoleCycle') {
+          console.debug(`Updated ${id} to ${value} at pathIndex ${pathIndex} with key '${key}'`);
+        }
+      } else {
+        console.warn(`DOM element with ID ${id} not found`);
       }
-      element.textContent = value;
-      if (id === 'gcodeFeedMode' || id === 'gcodeDistanceMode' || id === 'gcodeCoordinateSystem' || id === 'gcodeToolOffset' || id === 'gcodeToolLength' || id === 'gcodeRetractPlane' || id === 'gcodeRotation' || id === 'gcodeHoleCycle') {
-        console.debug(`Updated ${id} to ${value} at pathIndex ${pathIndex} with key '${key}'`);
-      }
-    } else {
-      console.warn(`DOM element with ID ${id} not found`);
-    }
-  });
+    });
+  }
 
   // Update M-code table
   updateMcodeTable(activeMCodes, pathIndex);
@@ -160,8 +173,10 @@ export function updateCodeTables(paths, pathIndex, feedMode = null, distanceMode
   if (paths.length > 0 && pathIndex >= 0 && pathIndex < paths.length) {
     const feedValue = document.getElementById('feedValue');
     const speedValue = document.getElementById('speedValue');
+    const toolValue = document.getElementById('toolValue');
     const feedDisplay = typeof paths[pathIndex].f === 'number' ? paths[pathIndex].f.toFixed(3) : '0.000';
     const speedDisplay = typeof paths[pathIndex].s === 'number' ? paths[pathIndex].s.toFixed(0) : '0';
+    const toolDisplay = paths[pathIndex].mCodes.toolNumber || 'T00';
     if (feedValue) {
       feedValue.textContent = feedDisplay;
     } else {
@@ -172,16 +187,23 @@ export function updateCodeTables(paths, pathIndex, feedMode = null, distanceMode
     } else {
       console.warn('DOM element with ID speedValue not found');
     }
-    console.debug(`Updated feed/speed table at pathIndex ${pathIndex}: feed=${feedDisplay}, speed=${speedDisplay}`);
+    if (toolValue) {
+      toolValue.textContent = toolDisplay;
+    } else {
+      console.warn('DOM element with ID toolValue not found');
+    }
+    console.debug(`Updated feed/speed table at pathIndex ${pathIndex}: feed=${feedDisplay}, speed=${speedDisplay}, tool=${toolDisplay}`);
   } else {
     const feedValue = document.getElementById('feedValue');
     const speedValue = document.getElementById('speedValue');
+    const toolValue = document.getElementById('toolValue');
     if (feedValue) feedValue.textContent = '0.000';
     if (speedValue) speedValue.textContent = '0';
-    if (!feedValue || !speedValue) {
-      console.warn('DOM elements for feed/speed table not found:', { feedValue: !!feedValue, speedValue: !!speedValue });
+    if (toolValue) toolValue.textContent = 'T00';
+    if (!feedValue || !speedValue || !toolValue) {
+      console.warn('DOM elements for feed/speed table not found:', { feedValue: !!feedValue, speedValue: !!speedValue, toolValue: !!toolValue });
     }
-    console.debug(`Updated feed/speed table for invalid pathIndex ${pathIndex}: feed=0.000, speed=0`);
+    console.debug(`Updated feed/speed table for invalid pathIndex ${pathIndex}: feed=0.000, speed=0, tool=T00`);
   }
 }
 
@@ -243,5 +265,10 @@ export function updateMcodeTable(activeMCodes, pathIndex) {
 
   if (activeMCodes.subprogram) {
     assignToEmptyRow('Subprogram', activeMCodes.subprogram);
+  }
+
+  if (activeMCodes.toolChange) {
+    assignToEmptyRow('Tool Change', activeMCodes.toolChange);
+    console.debug(`Assigned Tool Change code ${activeMCodes.toolChange} at pathIndex ${pathIndex}`);
   }
 }

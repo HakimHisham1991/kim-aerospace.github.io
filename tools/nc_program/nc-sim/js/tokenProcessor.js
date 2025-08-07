@@ -18,10 +18,10 @@ import { logError } from './errorHandler.js';
 export function processTokens(tokens, index, warningsDiv) {
   let tokenData = {
     x: null, y: null, z: null, a: null, b: null, c: null, e: null, u: null, v: null, w: null,
-    i: 0, j: 0, r: null, gCode: null, mCode: null, f: null, s: null,
+    i: 0, j: 0, r: null, gCode: null, mCode: null, f: null, s: null, t: null,
     hasZ: false, hasA: false, hasB: false, hasC: false, hasE: false,
     hasU: false, hasV: false, hasW: false, hasR: false, hasIJ: false,
-    hasF: false, hasS: false,
+    hasF: false, hasS: false, hasT: false,
     isValid: true
   };
 
@@ -38,6 +38,22 @@ export function processTokens(tokens, index, warningsDiv) {
       if (!tokenData.mCode) {
         tokenData.isValid = false;
         logError(`Invalid M-code '${token}' at line ${index + 1}`, `m-${index}`, warningsDiv);
+      }
+    } else if (token.startsWith('T')) {
+      const match = token.match(/^T(\d+)$/i);
+      if (match) {
+        const value = parseInt(match[1], 10);
+        if (!isNaN(value)) {
+          tokenData.t = value;
+          tokenData.hasT = true;
+          console.debug(`Processed parameter T${value} at line ${index + 1}`);
+        } else {
+          tokenData.isValid = false;
+          logError(`Invalid T value '${token}' at line ${index + 1}`, `t-${index}`, warningsDiv);
+        }
+      } else {
+        tokenData.isValid = false;
+        logError(`Invalid T parameter format '${token}' at line ${index + 1}`, `t-${index}`, warningsDiv);
       }
     } else {
       const axes = { X: 'x', Y: 'y', Z: 'z', A: 'a', B: 'b', C: 'c', E: 'e', U: 'u', V: 'v', W: 'w', I: 'i', J: 'j', R: 'r', F: 'f', S: 's' };
@@ -70,6 +86,12 @@ export function processTokens(tokens, index, warningsDiv) {
       }
     }
   });
+
+  // Validate TXX without M06
+  if (tokenData.hasT && tokenData.mCode !== 'M06') {
+    tokenData.isValid = false;
+    logError(`Error: TXX parameter requires M06 (Tool Change) at line ${index + 1}`, `t-no-m06-${index}`, warningsDiv);
+  }
 
   return tokenData;
 }

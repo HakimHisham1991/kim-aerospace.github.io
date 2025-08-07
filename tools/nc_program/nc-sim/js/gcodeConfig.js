@@ -21,7 +21,8 @@ export const defaultGCodes = {
 
 export const defaultMCodes = {
   spindle: 'M05',
-  coolant: 'M09'
+  coolant: 'M09',
+  toolNumber: 'T00'
 };
 
 export const validCodes = new Set([
@@ -38,6 +39,7 @@ export const validCodes = new Set([
   'G80', 'G81', 'G82', 'G83', 'G84', 'G85', 'G86', 'G87', 'G88', 'G89', 'G73', 'G74', 'G76',
   'M00', 'M01',
   'M03', 'M04', 'M05',
+  'M06',
   'M07', 'M08', 'M09',
   'M30',
   'M98', 'M99', 'M198'

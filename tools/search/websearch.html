@@ -8,15 +8,29 @@
   <link rel="stylesheet" href="websearch.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>Part Number Search</h1>
-    <p class="note">50,000 parts • fuzzy search • works offline</p>
 
-    <label for="search">Part Name or Number:</label>
-    <input type="text" id="search" autocomplete="off" placeholder="Try 71-89, hous, shaft, AG01..." />
 
-    <div id="results"></div>
+
+  
+<div class="container">
+  <div class="header">
+    <h1>Part Search</h1>
+    <div class="note">50,000+ parts • Instant • No cloud</div>
   </div>
+
+  <div class="search-box">
+    <label for="search">Part Number or Description:</label>
+    <input type="text" id="search" autocomplete="off" placeholder="e.g. 71-89, housing, shaft, AG01..." />
+  </div>
+
+  <div id="results">
+    <div class="loading">Start typing to search instantly...</div>
+  </div>
+</div>
+
+
+
+  
 
   <script src="parts.js"></script>        <!-- your 2000–50000 parts -->
   <script src="websearch.js"></script>

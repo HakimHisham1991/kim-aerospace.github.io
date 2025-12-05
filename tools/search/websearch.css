@@ -26,8 +26,12 @@ body {
   text-align: center;
 }
 
-.header h1 {
-  { font-size: 1.8rem; margin-bottom: 8px; }
+
+.header h1 { 
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
 .header .note { font-size: 0.95rem; opacity: 0.95; }
 
 .search-box {

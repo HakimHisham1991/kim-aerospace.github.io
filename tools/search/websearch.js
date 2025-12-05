@@ -13,14 +13,14 @@ input.addEventListener('input', () => {
   const query = input.value.trim();
   
   if (query.length < 2) {
-    resultsDiv.innerHTML = '<div style="color:#64748b;text-align:center;padding:20px;">Type 2+ characters...</div>';
+    resultsDiv.innerHTML = '<div class="loading">Type 2+ characters...</div>';
     return;
   }
 
   const results = fuse.search(query);
   
   if (results.length === 0) {
-    resultsDiv.innerHTML = '<div style="color:#ef4444;text-align:center;">No parts found</div>';
+    resultsDiv.innerHTML = '<div class="no-results">No parts found</div>';
     return;
   }
 
@@ -29,7 +29,7 @@ input.addEventListener('input', () => {
     return `
       <div class="result">
         <strong>${item.part_no}</strong><br>
-        <small>\( {item.description} <em>( \){item.project_code})</em></small>
+        <small>${item.description} <em>(${item.project_code})</em></small>
       </div>`;
   }).join('');
 });

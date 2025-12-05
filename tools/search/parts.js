@@ -1,4 +1,5 @@
-{"id": 1, "part_no": "25-65981", "description": "Pin Cotter - Control Rod", "project_code": "GS17"}
+const parts = [
+  {"id": 1, "part_no": "25-65981", "description": "Pin Cotter - Control Rod", "project_code": "GS17"}
 {"id": 2, "part_no": "90-43119", "description": "Flange Adapter - Exhaust Duct", "project_code": "IU23"}
 {"id": 3, "part_no": "25-60677", "description": "Cover Plate - Access Panel Pump", "project_code": "AG01"}
 {"id": 4, "part_no": "32-35043", "description": "Housing Upper 72", "project_code": "JV26"}
@@ -74,3 +75,5 @@
 {"id": 74, "part_no": "71-72743", "description": "Housing Lower Pump", "project_code": "EZ11"}
 {"id": 75, "part_no": "55-95720", "description": "Tube Assembly - Hydraulic Return", "project_code": "HT20"}
 {"id": 76, "part_no": "71-74110", "description": "Bracket Assy - 40", "project_code": "FR14"}
+
+ ];

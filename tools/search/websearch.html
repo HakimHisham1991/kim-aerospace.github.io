@@ -2,70 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PCN Part Search Demo – Meilisearch</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>PCN Part Search – Meilisearch Demo</title>
+  <link rel="stylesheet" href="websearch.css" />
   <script src="https://cdn.jsdelivr.net/npm/meilisearch@0.34.0/dist/bundles/meilisearch.umd.min.js"></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f7fafc;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      background: white;
-      padding: 40px 50px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      min-width: 600px;
-    }
-    h1 { text-align: center; color: #2d3748; margin-bottom: 30px; }
-    label {
-      font-weight: 600;
-      color: #2d3748;
-      font-size: 1.1rem;
-    }
-    input {
-      width: 100%;
-      padding: 14px 16px;
-      font-size: 1.1rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      margin-top: 8px;
-      transition: border 0.2s;
-    }
-    input:focus {
-      outline: none;
-      border-color: #4299e1;
-      box-shadow: 0 0 0 3px rgba(66,153,225,0.2);
-    }
-    .results {
-      margin-top: 20px;
-      padding: 15px;
-      background: #f8fff9;
-      border-radius: 8px;
-      border: 1px solid #c6f6d5;
-      min-height: 60px;
-    }
-    .hit {
-      padding: 10px;
-      background: white;
-      margin: 6px 0;
-      border-radius: 6px;
-      border-left: 4px solid #48bb78;
-    }
-    .loading { color: #718096; font-style: italic; }
-  </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>PCN Part Number Search Demo</h1>
+  <h1>Part Number Search</h1>
+  <p class="subtitle">Meilisearch demo – 50,000+ items, instant results</p>
+
   <label for="part">Part Name:</label>
+  <input type="text" id="part" placeholder="Try mario, zelda, open world..." autocomplete="off"/>
+
+  <div class="results" id="results">
+    <div class="loading">Type 2+ characters to search instantly...</div>
+  </div>
+</div>
+
+<script src="websearch.js"></script>
+</body>
+</html>  <label for="part">Part Name:</label>
   <input type="text" id="part" placeholder="Type 71-89, hous, shaft..." autocomplete="off"/>
 
   <div class="results" id="results">

@@ -2,25 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>PCN Part Search – Meilisearch Demo</title>
-  <link rel="stylesheet" href="websearch.css" />
-  <script src="https://cdn.jsdelivr.net/npm/meilisearch@0.34.0/dist/bundles/meilisearch.umd.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PCN Part Search – 100% Internal</title>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="container">
+    <h1>Part Number Search</h1>
+    <p class="note">50,000 parts • fuzzy search • works offline</p>
 
-<div class="container">
-  <h1>Part Number Search</h1>
-  <p class="subtitle">Meilisearch demo – 50,000+ items, instant results</p>
+    <label for="search">Part Name or Number:</label>
+    <input type="text" id="search" autocomplete="off" placeholder="Try 71-89, hous, shaft, AG01..." />
 
-  <label for="part">Part Name:</label>
-  <input type="text" id="part" placeholder="Try mario, zelda, open world..." autocomplete="off"/>
-
-  <div class="results" id="results">
-    <div class="loading">Type 2+ characters to search instantly...</div>
+    <div id="results"></div>
   </div>
-</div>
 
-<script src="websearch.js"></script>
+  <script src="parts.js"></script>        <!-- your 2000–50000 parts -->
+  <script src="script.js"></script>
 </body>
 </html>

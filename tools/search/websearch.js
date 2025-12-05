@@ -3,7 +3,8 @@ const client = new MeiliSearch({
   apiKey: 'a63da4928426f12639e19d62886f621130f3fa9ff3c7534c5d179f0f51c4f303'
 });
 
-const index = client.index('steam-videogames');
+'const index = client.index('steam-videogames');
+const index = client.index('parts');
 const input = document.getElementById('part');
 const resultsDiv = document.getElementById('results');
 

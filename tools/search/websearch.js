@@ -1,51 +1,65 @@
-document.addEventListener('DOMContentLoaded', function() {
-  const input = document.getElementById('search');
-  const resultsDiv = document.getElementById('results');
-  
-  console.log("Script loaded, parts array length:", parts.length);
+// --- CONFIGURE FUSE ---
+const fuse = new Fuse(parts, {
+  keys: ["part_no", "description", "project_code"],
+  threshold: 0.3,
+  includeScore: true,
+});
 
-  // Initialise Fuse.js once
-  const fuse = new Fuse(parts, {
-    keys: ['part_no', 'description', 'project_code'],
-    threshold: 0.4,
-    includeScore: true,
-    shouldSort: true
-  });
+// --- DOM ELEMENTS ---
+const searchInput = document.getElementById("search");
+const resultsDiv = document.getElementById("results");
 
-  input.addEventListener('input', function() {
-    const query = input.value.trim();
-    console.log("Searching for:", query);
-    
-    if (query.length < 2) {
-      resultsDiv.innerHTML = '<div class="loading">Type 2+ characters to search...</div>';
-      return;
-    }
+// --- SEARCH FUNCTION ---
+function renderResults(query) {
+  if (!query) {
+    resultsDiv.innerHTML = `<div class="loading">Start typing to search instantly...</div>`;
+    return;
+  }
 
-    const results = fuse.search(query);
-    console.log("Found results:", results.length);
-    
-    if (results.length === 0) {
-      resultsDiv.innerHTML = '<div class="no-results">No parts found for "' + query + '"</div>';
-      return;
-    }
+  const results = fuse.search(query).slice(0, 50); // limit to 50 results for speed
 
-    // Show top 30 results
-    const html = results.slice(0, 30).map(r => {
-      const item = r.item;
+  if (results.length === 0) {
+    resultsDiv.innerHTML = `<div class="no-results">No matching parts found.</div>`;
+    return;
+  }
+
+  // Build result list
+  resultsDiv.innerHTML = results
+    .map(r => {
+      const p = r.item;
       return `
-        <div class="result">
-          <strong>${item.part_no}</strong>
-          <small>${item.description} <em>(${item.project_code})</em></small>
-        </div>`;
-    }).join('');
-    
-    resultsDiv.innerHTML = html;
-  });
+        <div class="result" data-partno="${p.part_no}">
+          <strong>${p.part_no}</strong>
+          <small>${p.description}</small><br>
+          <small><em>${p.project_code}</em></small>
+        </div>
+      `;
+    })
+    .join("");
 
-  // Also add keyup event for better responsiveness
-  input.addEventListener('keyup', function(e) {
-    if (e.key === 'Enter') {
-      input.dispatchEvent(new Event('input'));
-    }
+  // Enable clicking to select a part
+  document.querySelectorAll(".result").forEach(el => {
+    el.addEventListener("click", () => {
+      const selectedPartNo = el.getAttribute("data-partno");
+
+      searchInput.value = selectedPartNo;  // fill in textbox
+      resultsDiv.innerHTML = "";           // hide results
+    });
   });
+}
+
+// --- SEARCH INPUT LISTENER ---
+searchInput.addEventListener("input", (e) => {
+  renderResults(e.target.value.trim());
+});
+
+// --- CLICK OUTSIDE TO HIDE RESULTS ---
+document.addEventListener("click", (e) => {
+  const clickedInside =
+    e.target.closest(".result") ||
+    e.target === searchInput;
+
+  if (!clickedInside) {
+    resultsDiv.innerHTML = "";
+  }
 });

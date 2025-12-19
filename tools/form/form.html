@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Form Viewer</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f9f9f9; }
+    h1 { color: #333; }
+    .readonly { background: #eee; color: #666; }
+    button { padding: 10px 20px; font-size: 16px; margin-top: 20px; }
+</style>
+</head>
+<body>
+<h1 id="formId">Form Loading...</h1>
+<p id="mode">Loading...</p>
+
+<div id="formContent">
+    <label>Department Approval: <input type="text" id="approval"></label><br><br>
+    <label>Comments: <textarea id="comments" rows="5" cols="50"></textarea></label><br><br>
+    <button onclick="saveForm()">Save Changes</button>
+    <button onclick="closeForm()">Close / Unlock</button>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const formId = params.get('form');
+const canEdit = params.get('edit') === '1';
+
+document.getElementById('formId').textContent = 'Form: ' + formId;
+document.getElementById('mode').textContent = canEdit 
+    ? 'You are editing this form.' 
+    : 'READ-ONLY: This form is being edited by another user.';
+
+if (!canEdit) {
+    document.getElementById('formContent').classList.add('readonly');
+    document.querySelectorAll('input, textarea, button:first-of-type').forEach(el => el.disabled = true);
+}
+
+function saveForm() {
+    alert('Changes saved for ' + formId + ' (demo only)');
+}
+
+function closeForm() {
+    const lockKey = 'lock_' + formId;
+    const lockData = localStorage.getItem(lockKey);
+    if (lockData) {
+        const { user } = JSON.parse(lockData);
+        if (user === (prompt("Confirm your username to unlock:", "") || "")) {
+            localStorage.removeItem(lockKey);
+            alert("Form unlocked.");
+            window.close();
+        }
+    } else {
+        window.close();
+    }
+}
+
+// Keep lock alive while tab is open (heartbeat simulation)
+setInterval(() => {
+    const lockKey = 'lock_' + formId;
+    const lockData = localStorage.getItem(lockKey);
+    if (lockData) {
+        const parsed = JSON.parse(lockData);
+        parsed.timestamp = Date.now();
+        localStorage.setItem(lockKey, JSON.stringify(parsed));
+    }
+}, 30000); // Refresh lock every 30 seconds
+</script>
+</body>
+</html>

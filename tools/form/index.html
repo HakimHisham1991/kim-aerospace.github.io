@@ -16,11 +16,13 @@
     button:disabled { background-color: #aaa; cursor: not-allowed; }
     .editing { color: #d32f2f; font-weight: bold; }
     .free { color: #388e3c; }
+    .admin-btn { background-color: #f44336; margin-top: 20px; }
+    .admin-btn:hover { background-color: #d32f2f; }
 </style>
 </head>
 <body>
 
-<h1>Interdepartmental Stamping Forms Rev06</h1>
+<h1>Interdepartmental Stamping Forms Rev07</h1>
 
 <table id="formsTable">
     <thead>
@@ -49,18 +51,19 @@
     </tbody>
 </table>
 
+<button class="admin-btn" onclick="clearAllLocks()">Clear All Locks (for testing)</button>
+
 <script>
-// Username handling: Prompt once per browser session and remember
+// Username handling
 let CURRENT_USER = localStorage.getItem('currentDemoUser');
 if (!CURRENT_USER) {
     CURRENT_USER = prompt("Enter your username for this session:", "UserA") || "UserA";
     localStorage.setItem('currentDemoUser', CURRENT_USER);
 }
 
-// Lock timeout: 5 minutes
+// Lock timeout
 const LOCK_TIMEOUT = 5 * 60 * 1000;
 
-// Refresh the table status
 function refreshLocks() {
     const rows = document.querySelectorAll('#formsTable tbody tr');
     rows.forEach(row => {
@@ -100,50 +103,55 @@ function refreshLocks() {
     });
 }
 
-// Main openForm function - FIXED logic
 function openForm(formId) {
     const lockKey = 'lock_' + formId;
     let existingLock = localStorage.getItem(lockKey);
 
     let canEdit = true;
 
-    // Check if there's an active lock
     if (existingLock) {
         let { user, timestamp } = JSON.parse(existingLock);
         const age = Date.now() - timestamp;
 
         if (age > LOCK_TIMEOUT) {
-            localStorage.removeItem(lockKey); // Clean expired lock
+            localStorage.removeItem(lockKey);
             existingLock = null;
         } else if (user !== CURRENT_USER) {
-            canEdit = false; // Someone else has it → read-only, do NOT take lock
+            canEdit = false;
         }
-        // If it's already ours → canEdit remains true
     }
 
-    // Only acquire/refresh the lock if we are allowed to edit
     if (canEdit) {
         localStorage.setItem(lockKey, JSON.stringify({
             user: CURRENT_USER,
             timestamp: Date.now()
         }));
     }
-    // If not canEdit → we leave the existing lock untouched
 
     const editParam = canEdit ? "?edit=1" : "?edit=0";
     window.open('form.html?form=' + encodeURIComponent(formId) + editParam, '_blank');
 
-    // Update UI immediately
-    setTimeout(refreshLocks, 300); // Small delay to ensure localStorage is updated
+    setTimeout(refreshLocks, 300);
 }
 
-// Auto-refresh every 5 seconds
-setInterval(refreshLocks, 5000);
-refreshLocks(); // Initial refresh
+function clearAllLocks() {
+    if (confirm("Clear ALL form locks? This is for testing only.")) {
+        for (let key in localStorage) {
+            if (key.startsWith('lock_')) {
+                localStorage.removeItem(key);
+            }
+        }
+        refreshLocks();
+        alert("All locks cleared!");
+    }
+}
 
+// Auto refresh
+setInterval(refreshLocks, 5000);
+refreshLocks();
 </script>
 
-<p><small><strong>Demo Note:</strong> Use different incognito windows or browsers with different usernames to test locking properly. Locks expire after 5 minutes of inactivity.</small></p>
+<p><small><strong>Demo Note:</strong> Use the "Clear All Locks" button anytime testing gets stuck. For multi-user testing: different incognito windows or browsers.</small></p>
 
 </body>
 </html>

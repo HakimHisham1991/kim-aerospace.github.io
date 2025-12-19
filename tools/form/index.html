@@ -2,57 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Interdepartmental Forms - Locking Demo</title>
+<title>Interdepartmental Forms - Locking Demo Rev03</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 40px;
-        background-color: #f5f5f5;
-    }
-    h1 {
-        color: #333;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
-    th, td {
-        padding: 12px 15px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
-    th {
-        background-color: #4CAF50;
-        color: white;
-    }
-    tr:hover {
-        background-color: #f1f1f1;
-    }
-    button {
-        padding: 8px 12px;
-        background-color: #2196F3;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    button:hover {
-        background-color: #1976D2;
-    }
-    button:disabled {
-        background-color: #aaa;
-        cursor: not-allowed;
-    }
-    .editing {
-        color: #d32f2f;
-        font-weight: bold;
-    }
-    .free {
-        color: #388e3c;
-    }
+    body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+    h1 { color: #333; }
+    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background-color: #4CAF50; color: white; }
+    tr:hover { background-color: #f1f1f1; }
+    button { padding: 8px 12px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background-color: #1976D2; }
+    button:disabled { background-color: #aaa; cursor: not-allowed; }
+    .editing { color: #d32f2f; font-weight: bold; }
+    .free { color: #388e3c; }
 </style>
 </head>
 <body>
@@ -87,13 +50,16 @@
 </table>
 
 <script>
-// Simulate different users by changing this name (for demo on same browser)
-const CURRENT_USER = prompt("Enter your username for this session:", "UserA") || "UserA";
+// Get or set username
+let CURRENT_USER = localStorage.getItem('currentDemoUser');
+if (!CURRENT_USER) {
+    CURRENT_USER = prompt("Enter your username for this session:", "UserA") || "UserA";
+    localStorage.setItem('currentDemoUser', CURRENT_USER);
+}
 
-// Lock expiration time: 5 minutes (300000 ms)
+// Lock expiration: 5 minutes
 const LOCK_TIMEOUT = 5 * 60 * 1000;
 
-// Load and display current lock status for all forms
 function refreshLocks() {
     const rows = document.querySelectorAll('#formsTable tbody tr');
     rows.forEach(row => {
@@ -107,68 +73,71 @@ function refreshLocks() {
             const age = Date.now() - timestamp;
 
             if (age > LOCK_TIMEOUT) {
-                // Expired lock
                 localStorage.removeItem('lock_' + formId);
                 statusCell.textContent = "None";
                 statusCell.className = "status free";
-                button.disabled = false;
                 button.textContent = "Open Form";
+                button.disabled = false;
             } else {
-                // Active lock
                 statusCell.textContent = user + " (editing)";
                 statusCell.className = "status editing";
                 if (user === CURRENT_USER) {
-                    button.textContent = "You are editing (in another tab)";
+                    button.textContent = "You are editing";
                     button.disabled = true;
                 } else {
-                    button.textContent = "Locked - Read Only";
-                    button.disabled = false; // Still allow opening as read-only
+                    button.textContent = "Open (Read-Only)";
+                    button.disabled = false;
                 }
             }
         } else {
             statusCell.textContent = "None";
             statusCell.className = "status free";
-            button.disabled = false;
             button.textContent = "Open Form";
+            button.disabled = false;
         }
     });
 }
 
-// Open form in new tab and attempt to lock
+// FIXED: Check lock first, only acquire if free or yours
 function openForm(formId) {
     const lockKey = 'lock_' + formId;
     const existing = localStorage.getItem(lockKey);
 
     let canEdit = true;
+
     if (existing) {
         const { user, timestamp } = JSON.parse(existing);
-        if (Date.now() - timestamp <= LOCK_TIMEOUT && user !== CURRENT_USER) {
-            canEdit = false; // Locked by someone else
+        const age = Date.now() - timestamp;
+
+        if (age > LOCK_TIMEOUT) {
+            localStorage.removeItem(lockKey); // Clean expired
+        } else if (user !== CURRENT_USER) {
+            canEdit = false; // Locked by someone else → read-only, do NOT overwrite
         }
+        // If it's already yours → canEdit stays true
     }
 
-    // Always set/update the lock for this user
-    localStorage.setItem(lockKey, JSON.stringify({
-        user: CURRENT_USER,
-        timestamp: Date.now()
-    }));
+    // ONLY set lock if we can edit (i.e., it's free or already ours)
+    if (canEdit) {
+        localStorage.setItem(lockKey, JSON.stringify({
+            user: CURRENT_USER,
+            timestamp: Date.now()
+        }));
+    }
+    // Else: leave existing lock untouched
 
-    // Open the "form" page (simulated)
     const editParam = canEdit ? "?edit=1" : "?edit=0";
-    const newTab = window.open('form.html?form=' + encodeURIComponent(formId) + editParam, '_blank');
+    window.open('form.html?form=' + encodeURIComponent(formId) + editParam, '_blank');
 
-    // Refresh the list immediately
-    refreshLocks();
-
-    // If user closes the tab without proper unlock, lock will expire automatically
+    refreshLocks(); // Immediate UI update
 }
 
-// Refresh every 5 seconds to detect changes from other tabs/users
+// Refresh every 5 seconds
 setInterval(refreshLocks, 5000);
-refreshLocks(); // Initial load
+refreshLocks();
 </script>
 
-<p><small><strong>Demo Note:</strong> Open this page in multiple tabs or browser windows with different usernames to simulate multiple users. Locks expire after 5 minutes of inactivity.</small></p>
+<p><small><strong>Demo Note:</strong> Use different browsers or incognito windows with different usernames to properly test locking. Locks expire after 5 minutes.</small></p>
 
 </body>
 </html>

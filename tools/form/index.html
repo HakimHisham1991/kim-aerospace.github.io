@@ -20,7 +20,7 @@
 </head>
 <body>
 
-<h1>Interdepartmental Stamping Forms Rev05</h1>
+<h1>Interdepartmental Stamping Forms</h1>
 
 <table id="formsTable">
     <thead>
@@ -50,30 +50,32 @@
 </table>
 
 <script>
-// Get or set username
+// Username handling: Prompt once per browser session and remember
 let CURRENT_USER = localStorage.getItem('currentDemoUser');
 if (!CURRENT_USER) {
     CURRENT_USER = prompt("Enter your username for this session:", "UserA") || "UserA";
     localStorage.setItem('currentDemoUser', CURRENT_USER);
 }
 
-// Lock expiration: 5 minutes
+// Lock timeout: 5 minutes
 const LOCK_TIMEOUT = 5 * 60 * 1000;
 
+// Refresh the table status
 function refreshLocks() {
     const rows = document.querySelectorAll('#formsTable tbody tr');
     rows.forEach(row => {
         const formId = row.getAttribute('data-form');
         const statusCell = row.querySelector('.status');
         const button = row.querySelector('button');
+        const lockKey = 'lock_' + formId;
 
-        const lockData = localStorage.getItem('lock_' + formId);
+        const lockData = localStorage.getItem(lockKey);
         if (lockData) {
-            const { user, timestamp } = JSON.parse(lockData);
+            let { user, timestamp } = JSON.parse(lockData);
             const age = Date.now() - timestamp;
 
             if (age > LOCK_TIMEOUT) {
-                localStorage.removeItem('lock_' + formId);
+                localStorage.removeItem(lockKey);
                 statusCell.textContent = "None";
                 statusCell.className = "status free";
                 button.textContent = "Open Form";
@@ -98,46 +100,50 @@ function refreshLocks() {
     });
 }
 
-// FIXED: Check lock first, only acquire if free or yours
+// Main openForm function - FIXED logic
 function openForm(formId) {
     const lockKey = 'lock_' + formId;
-    const existing = localStorage.getItem(lockKey);
+    let existingLock = localStorage.getItem(lockKey);
 
     let canEdit = true;
 
-    if (existing) {
-        const { user, timestamp } = JSON.parse(existing);
+    // Check if there's an active lock
+    if (existingLock) {
+        let { user, timestamp } = JSON.parse(existingLock);
         const age = Date.now() - timestamp;
 
         if (age > LOCK_TIMEOUT) {
-            localStorage.removeItem(lockKey); // Clean expired
+            localStorage.removeItem(lockKey); // Clean expired lock
+            existingLock = null;
         } else if (user !== CURRENT_USER) {
-            canEdit = false; // Locked by someone else → read-only, do NOT overwrite
+            canEdit = false; // Someone else has it → read-only, do NOT take lock
         }
-        // If it's already yours → canEdit stays true
+        // If it's already ours → canEdit remains true
     }
 
-    // ONLY set lock if we can edit (i.e., it's free or already ours)
+    // Only acquire/refresh the lock if we are allowed to edit
     if (canEdit) {
         localStorage.setItem(lockKey, JSON.stringify({
             user: CURRENT_USER,
             timestamp: Date.now()
         }));
     }
-    // Else: leave existing lock untouched
+    // If not canEdit → we leave the existing lock untouched
 
     const editParam = canEdit ? "?edit=1" : "?edit=0";
     window.open('form.html?form=' + encodeURIComponent(formId) + editParam, '_blank');
 
-    refreshLocks(); // Immediate UI update
+    // Update UI immediately
+    setTimeout(refreshLocks, 300); // Small delay to ensure localStorage is updated
 }
 
-// Refresh every 5 seconds
+// Auto-refresh every 5 seconds
 setInterval(refreshLocks, 5000);
-refreshLocks();
+refreshLocks(); // Initial refresh
+
 </script>
 
-<p><small><strong>Demo Note:</strong> Use different browsers or incognito windows with different usernames to properly test locking. Locks expire after 5 minutes.</small></p>
+<p><small><strong>Demo Note:</strong> Use different incognito windows or browsers with different usernames to test locking properly. Locks expire after 5 minutes of inactivity.</small></p>
 
 </body>
 </html>

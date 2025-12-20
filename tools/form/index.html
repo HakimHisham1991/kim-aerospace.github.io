@@ -155,8 +155,7 @@ function openForm(formId) {
     }
 
         // Pass username and edit mode via URL
-    const params = `?form=\( {encodeURIComponent(formId)}&user= \){encodeURIComponent(CURRENT_USER)}&edit=${canEdit ? 1 : 0}`;
-    window.open('form.html' + params, '_blank');
+    const params = `?form=${encodeURIComponent(formId)}&user=${encodeURIComponent(CURRENT_USER)}&edit=${canEdit ? 1 : 0}`;
 
 
 

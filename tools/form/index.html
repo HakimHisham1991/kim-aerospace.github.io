@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Interdepartmental Forms - Locking Demo</title>
+<title>rev10 Interdepartmental Forms - Locking Demo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
     body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
@@ -28,7 +28,7 @@
     <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display:none;">Logout</button>
 </div>
 
-<h1>Interdepartmental Stamping Forms Rev09</h1>
+<h1>rev10 Interdepartmental Stamping Forms</h1>
 
 <table id="formsTable">
     <tbody>
@@ -53,7 +53,7 @@
 <button class="admin-btn" onclick="clearAllLocks()">Clear All Locks (for testing)</button>
 
 <script>
-let CURRENT_USER = localStorage.getItem('currentDemoUser');
+let CURRENT_USER = localStorage.getItem('currentDemoUser') || '';
 
 function updateUserDisplay() {
     const userSpan = document.getElementById('currentUser');
@@ -81,7 +81,7 @@ function login() {
 function logout() {
     if (confirm('Logout?')) {
         localStorage.removeItem('currentDemoUser');
-        CURRENT_USER = null;
+        CURRENT_USER = '';
         updateUserDisplay();
     }
 }
@@ -98,17 +98,18 @@ function refreshLocks() {
         const lockData = localStorage.getItem(lockKey);
 
         if (lockData) {
-            const { user, timestamp } = JSON.parse(lockData);
-            if (Date.now() - timestamp > LOCK_TIMEOUT) {
+            const parsed = JSON.parse(lockData);
+            const age = Date.now() - parsed.timestamp;
+            if (age > LOCK_TIMEOUT) {
                 localStorage.removeItem(lockKey);
                 statusCell.textContent = "None";
                 statusCell.className = "status free";
                 button.textContent = "Open Form";
                 button.disabled = false;
             } else {
-                statusCell.textContent = user + " (editing)";
+                statusCell.textContent = parsed.user + " (editing)";
                 statusCell.className = "status editing";
-                if (user.toLowerCase() === (CURRENT_USER || '').toLowerCase()) {
+                if (parsed.user === CURRENT_USER) {
                     button.textContent = "You are editing";
                     button.disabled = true;
                 } else {
@@ -132,19 +133,20 @@ function openForm(formId) {
     }
 
     const lockKey = 'lock_' + formId;
-    let lockData = localStorage.getItem(lockKey);
+    const lockData = localStorage.getItem(lockKey);
     let canEdit = true;
 
     if (lockData) {
-        const { user, timestamp } = JSON.parse(lockData);
-        if (Date.now() - timestamp > LOCK_TIMEOUT) {
+        const parsed = JSON.parse(lockData);
+        const age = Date.now() - parsed.timestamp;
+        if (age > LOCK_TIMEOUT) {
             localStorage.removeItem(lockKey);
-            lockData = null;
-        } else if (user.toLowerCase() !== CURRENT_USER.toLowerCase()) {
+        } else if (parsed.user !== CURRENT_USER) {
             canEdit = false;
         }
     }
 
+    // Always set/refresh lock if canEdit (first user or your own)
     if (canEdit) {
         localStorage.setItem(lockKey, JSON.stringify({
             user: CURRENT_USER,
@@ -152,15 +154,18 @@ function openForm(formId) {
         }));
     }
 
-    const editParam = canEdit ? "?edit=1" : "?edit=0";
-    window.open('form.html?form=' + encodeURIComponent(formId) + editParam, '_blank');
+    // Pass username and edit mode via URL
+    const params = `?form=\( {encodeURIComponent(formId)}&user= \){encodeURIComponent(CURRENT_USER)}&edit=${canEdit ? 1 : 0}`;
+    window.open('form.html' + params, '_blank');
 
     setTimeout(refreshLocks, 500);
 }
 
 function clearAllLocks() {
     if (confirm("Clear ALL locks?")) {
-        Object.keys(localStorage).filter(k => k.startsWith('lock_')).forEach(k => localStorage.removeItem(k));
+        Object.keys(localStorage)
+            .filter(k => k.startsWith('lock_'))
+            .forEach(k => localStorage.removeItem(k));
         refreshLocks();
         alert("All locks cleared!");
     }
@@ -170,5 +175,7 @@ updateUserDisplay();
 setInterval(refreshLocks, 5000);
 refreshLocks();
 </script>
+
+<p><small>Tip: As the first user, you will always get edit mode after clearing locks.</small></p>
 </body>
 </html>

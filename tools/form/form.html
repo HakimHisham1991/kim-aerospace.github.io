@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Form Viewer</title>
+<title>Form Viewer rev10</title>
 <style>
     body { font-family: Arial, sans-serif; margin: 40px; background: #f9f9f9; }
     .user-info { background-color: #e3f2fd; padding: 10px 15px; border-radius: 6px; display: inline-block; font-weight: bold; margin-bottom: 20px; color: #1976d2; }
-    .readonly { opacity: 0.7; }
+    .readonly { opacity: 0.7; pointer-events: none; }
     button { padding: 10px 20px; margin: 10px 10px 10px 0; cursor: pointer; }
     .force-unlock { background-color: #f44336; color: white; }
 </style>
@@ -31,60 +31,52 @@
 <script>
 const params = new URLSearchParams(location.search);
 const formId = params.get('form') || 'Unknown';
-const urlEdit = params.get('edit') === '1';
+const urlUser = params.get('user') || 'Unknown';
+const canEdit = params.get('edit') === '1';
 
-let currentUser = localStorage.getItem('currentDemoUser') || 'Unknown';
-document.getElementById('currentUser').textContent = currentUser;
+document.getElementById('currentUser').textContent = urlUser;
 document.getElementById('formId').textContent = 'Form: ' + formId;
 
-if (urlEdit) {
-    document.getElementById('mode').textContent = 'You are editing this form.';
+if (canEdit) {
+    document.getElementById('mode').textContent = 'You are editing this form (full access).';
 } else {
     document.getElementById('formContent').classList.add('readonly');
-    document.querySelectorAll('input, textarea, button:first-of-type').forEach(el => el.disabled = true);
-    document.getElementById('mode').textContent = 'READ-ONLY: This form is being edited by another user.';
+    document.getElementById('mode').textContent = 'READ-ONLY: Locked by another user.';
 }
 
 function saveForm() {
-    alert('Changes saved for ' + formId + ' (demo only)\nUser: ' + currentUser);
+    if (!canEdit) {
+        alert('Cannot save in read-only mode.');
+        return;
+    }
+    alert('Changes saved successfully for ' + formId + '!\n(Demo only - in real app, this would submit to server)');
 }
 
 function closeForm() {
-    unlockAndClose();
-}
-
-function forceUnlock() {
-    if (confirm('Force unlock this form?')) {
+    if (canEdit) {
         localStorage.removeItem('lock_' + formId);
-        alert('Forced unlock!');
-        location.reload();
-    }
-}
-
-function unlockAndClose() {
-    const lockKey = 'lock_' + formId;
-    const lockData = localStorage.getItem(lockKey);
-    if (lockData) {
-        const parsed = JSON.parse(lockData);
-        if (parsed.user.toLowerCase() === currentUser.toLowerCase()) {
-            localStorage.removeItem(lockKey);
-        }
+        alert('Form unlocked.');
     }
     window.close();
 }
 
-// Heartbeat to keep lock alive
-setInterval(() => {
-    const lockKey = 'lock_' + formId;
-    const lockData = localStorage.getItem(lockKey);
-    if (lockData) {
-        const parsed = JSON.parse(lockData);
-        if (parsed.user.toLowerCase() === currentUser.toLowerCase()) {
-            parsed.timestamp = Date.now();
-            localStorage.setItem(lockKey, JSON.stringify(parsed));
-        }
+function forceUnlock() {
+    if (confirm('Force unlock?')) {
+        localStorage.removeItem('lock_' + formId);
+        alert('Unlocked!');
+        location.reload();
     }
-}, 20000); // Every 20 seconds
+}
+
+// Keep lock alive if you have edit mode
+if (canEdit) {
+    setInterval(() => {
+        localStorage.setItem('lock_' + formId, JSON.stringify({
+            user: urlUser,
+            timestamp: Date.now()
+        }));
+    }, 20000);
+}
 </script>
 </body>
 </html>

@@ -2,42 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Form Viewer Rev04</title>
+<title>Form Viewer</title>
 <style>
-    body { 
-        font-family: Arial, sans-serif; 
-        margin: 40px; 
-        background: #f9f9f9; 
-    }
-    h1 { 
-        color: #333; 
-    }
-    .user-info {
-        background-color: #e3f2fd;
-        padding: 10px 15px;
-        border-radius: 6px;
-        display: inline-block;
-        font-weight: bold;
-        margin-bottom: 20px;
-        color: #1976d2;
-    }
-    .readonly { 
-        background: #eee; 
-        color: #666; 
-    }
-    .readonly input, .readonly textarea {
-        background: #f5f5f5;
-    }
-    button { 
-        padding: 10px 20px; 
-        font-size: 16px; 
-        margin: 10px 10px 10px 0; 
-        cursor: pointer;
-    }
-    button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f9f9f9; }
+    .user-info { background-color: #e3f2fd; padding: 10px 15px; border-radius: 6px; display: inline-block; font-weight: bold; margin-bottom: 20px; color: #1976d2; }
+    .readonly { opacity: 0.7; }
+    button { padding: 10px 20px; margin: 10px 10px 10px 0; cursor: pointer; }
+    .force-unlock { background-color: #f44336; color: white; }
 </style>
 </head>
 <body>
@@ -54,35 +25,24 @@
     <label>Comments: <textarea id="comments" rows="5" cols="50"></textarea></label><br><br>
     <button onclick="saveForm()">Save Changes</button>
     <button onclick="closeForm()">Close / Unlock</button>
-    <button onclick="window.location.reload()">Refresh Status</button>
+    <button class="force-unlock" onclick="forceUnlock()">Force Unlock (testing)</button>
 </div>
 
 <script>
-// Get URL parameters
 const params = new URLSearchParams(location.search);
-const formId = params.get('form');
-const canEdit = params.get('edit') === '1';
+const formId = params.get('form') || 'Unknown';
+const urlEdit = params.get('edit') === '1';
 
-// Get username from localStorage (set in index.html when user first logs in)
-let currentUser = localStorage.getItem('currentDemoUser');
-
-// Fallback: if not found, get from prompt (for direct access)
-if (!currentUser) {
-    currentUser = prompt("Enter your username:", "UserA") || "UserA";
-    localStorage.setItem('currentDemoUser', currentUser);
-}
-
-// Display the username at the top
+let currentUser = localStorage.getItem('currentDemoUser') || 'Unknown';
 document.getElementById('currentUser').textContent = currentUser;
+document.getElementById('formId').textContent = 'Form: ' + formId;
 
-document.getElementById('formId').textContent = 'Form: ' + (formId || 'Unknown');
-document.getElementById('mode').textContent = canEdit 
-    ? 'You are editing this form.' 
-    : 'READ-ONLY: This form is being edited by another user.';
-
-if (!canEdit) {
+if (urlEdit) {
+    document.getElementById('mode').textContent = 'You are editing this form.';
+} else {
     document.getElementById('formContent').classList.add('readonly');
     document.querySelectorAll('input, textarea, button:first-of-type').forEach(el => el.disabled = true);
+    document.getElementById('mode').textContent = 'READ-ONLY: This form is being edited by another user.';
 }
 
 function saveForm() {
@@ -90,51 +50,41 @@ function saveForm() {
 }
 
 function closeForm() {
+    unlockAndClose();
+}
+
+function forceUnlock() {
+    if (confirm('Force unlock this form?')) {
+        localStorage.removeItem('lock_' + formId);
+        alert('Forced unlock!');
+        location.reload();
+    }
+}
+
+function unlockAndClose() {
     const lockKey = 'lock_' + formId;
     const lockData = localStorage.getItem(lockKey);
     if (lockData) {
         const parsed = JSON.parse(lockData);
-        if (parsed.user === currentUser) {
-            if (confirm(`Unlock form ${formId} and close?`)) {
-                localStorage.removeItem(lockKey);
-                alert("Form unlocked successfully.");
-                window.close();
-            }
-            return;
+        if (parsed.user.toLowerCase() === currentUser.toLowerCase()) {
+            localStorage.removeItem(lockKey);
         }
     }
-    // If not locked by this user, just close
     window.close();
 }
 
-// Heartbeat: Keep the lock alive every 30 seconds
+// Heartbeat to keep lock alive
 setInterval(() => {
     const lockKey = 'lock_' + formId;
     const lockData = localStorage.getItem(lockKey);
     if (lockData) {
         const parsed = JSON.parse(lockData);
-        if (parsed.user === currentUser) {
+        if (parsed.user.toLowerCase() === currentUser.toLowerCase()) {
             parsed.timestamp = Date.now();
             localStorage.setItem(lockKey, JSON.stringify(parsed));
         }
     }
-}, 30000);
-
-// Optional: Auto-unlock on tab close (best effort)
-window.addEventListener('beforeunload', () => {
-    const lockKey = 'lock_' + formId;
-    const lockData = localStorage.getItem(lockKey);
-    if (lockData) {
-        const parsed = JSON.parse(lockData);
-        if (parsed.user === currentUser) {
-            // Try to unlock (navigator.sendBeacon is more reliable)
-            navigator.sendBeacon && navigator.sendBeacon(location.origin + location.pathname, JSON.stringify({ unlock: formId }));
-            // Fallback: just remove locally
-            localStorage.removeItem(lockKey);
-        }
-    }
-});
+}, 20000); // Every 20 seconds
 </script>
-
 </body>
 </html>

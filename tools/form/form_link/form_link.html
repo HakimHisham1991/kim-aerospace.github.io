@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Server & Local Folder Links</title>
+    <title>My Folder Links</title>
     <style>
         :root {
             --primary: #3498db;
             --primary-hover: #2980b9;
+            --danger: #e74c3c;
+            --danger-hover: #c0392b;
             --bg: #f7f7f7;
             --card-bg: white;
             --text: #333;
@@ -39,6 +41,9 @@
             padding: 15px;
             border-radius: 8px;
             box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             transition: all 0.2s;
         }
         .folder-link:hover {
@@ -50,15 +55,36 @@
             text-decoration: none;
             font-size: 18px;
             word-break: break-all;
+            flex: 1;
+            margin-right: 10px;
         }
         .folder-link a:hover { text-decoration: underline; }
+        .delete-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .delete-btn:hover {
+            background: var(--danger-hover);
+        }
         .empty-message {
             text-align: center;
             color: #777;
             font-style: italic;
             margin-top: 50px;
         }
-        .android-note {
+        .note {
             background: #e8f4fd;
             padding: 12px;
             border-radius: 8px;
@@ -66,16 +92,61 @@
             margin-bottom: 20px;
             border-left: 4px solid var(--primary);
         }
+        /* Dialog styles */
+        #custom-dialog {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            max-width: 90%;
+            width: 400px;
+        }
+        #dialog-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        #path-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .dialog-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .dialog-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #browse-btn { background-color: #27ae60; color: white; }
+        #browse-btn:hover { background-color: #219a52; }
+        #ok-btn { background-color: var(--primary); color: white; }
+        #ok-btn:hover { background-color: var(--primary-hover); }
+        #cancel-btn { background-color: #95a5a6; color: white; }
+        #cancel-btn:hover { background-color: #7f8c8d; }
     </style>
 </head>
 <body>
     <h1>My Folder Links</h1>
 
-    <div class="android-note">
-        <strong>Best for Android:</strong> Paste paths like:<br>
-        • /Internal storage/Download/Laptop<br>
-        • /storage/emulated/0/Download/Laptop<br>
-        Clicking the link will open the folder directly in the Files app!
+    <div class="note">
+        <strong>Windows (Chrome/Edge):</strong> Use "Browse for Folder" for easy selection.<br>
+        <strong>Android:</strong> Paste paths manually. Tap × to delete a link.
     </div>
 
     <button id="add-button">Add Folder Link</button>
@@ -84,107 +155,134 @@
         <div class="empty-message">No links added yet. Click the button to add one!</div>
     </div>
 
+    <!-- Custom dialog -->
+    <div id="dialog-overlay" style="display:none;"></div>
+    <div id="custom-dialog" style="display:none;">
+        <p>Enter path manually or browse:</p>
+        <input type="text" id="path-input" placeholder="e.g. C:\Users\Name\Downloads\Laptop or /Internal storage/Download/Laptop">
+        <div class="dialog-buttons">
+            <button id="browse-btn">Browse for Folder</button>
+            <button id="cancel-btn">Cancel</button>
+            <button id="ok-btn">OK</button>
+        </div>
+    </div>
+
     <script type="module">
         const elements = {
             addButton: document.getElementById('add-button'),
             linksContainer: document.getElementById('links-container'),
-            emptyMessage: document.querySelector('.empty-message')
+            emptyMessage: document.querySelector('.empty-message'),
+            dialogOverlay: document.getElementById('dialog-overlay'),
+            customDialog: document.getElementById('custom-dialog'),
+            pathInput: document.getElementById('path-input'),
+            browseBtn: document.getElementById('browse-btn'),
+            okBtn: document.getElementById('ok-btn'),
+            cancelBtn: document.getElementById('cancel-btn')
         };
 
         const utils = {
-            // Convert user-friendly path to content:// URI for Android
-            convertToContentUri(path) {
-                let cleanPath = path.trim();
-
-                // Normalize "Internal storage" to real path
-                if (cleanPath.startsWith('/Internal storage/')) {
-                    cleanPath = '/storage/emulated/0' + cleanPath.substring('/Internal storage'.length);
-                }
-
-                // Remove leading slash for the document ID
-                if (cleanPath.startsWith('/')) {
-                    cleanPath = cleanPath.substring(1);
-                }
-
-                // Build the content URI for directories
-                const encodedPath = encodeURIComponent(cleanPath.replace(/\//g, ':'));
-                return `content://com.android.externalstorage.documents/document/primary:${encodedPath}`;
-            },
-
-            createLinkElement(displayText, url) {
+            createLinkElement(displayText) {
                 const linkDiv = document.createElement('div');
                 linkDiv.className = 'folder-link';
 
                 const anchor = document.createElement('a');
-                anchor.href = url;
+                // For PC: file:// URL, for Android: content:// or raw path
+                const isWindowsPath = displayText.includes('\\') || /^[A-Z]:/.test(displayText);
+                anchor.href = isWindowsPath 
+                    ? 'file:///' + displayText.replace(/\\/g, '/')
+                    : '#'; // Android: non-functional link, just display
                 anchor.textContent = displayText;
                 anchor.target = '_blank';
                 anchor.rel = 'noopener';
+                anchor.title = isWindowsPath ? 'Click to open in Explorer' : 'Path (tap × to delete)';
 
-                // Add directory MIME type via JS (helps some browsers)
-                anchor.onclick = function(e) {
-                    // Fallback: try to set type via navigator if possible
-                    try {
-                        navigator.startActivity?.({
-                            action: 'android.intent.action.VIEW',
-                            data: url,
-                            type: 'vnd.android.document/directory'
-                        });
-                    } catch(err) {}
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '×';
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.title = 'Delete this link';
+                deleteBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (confirm('Delete this folder link?')) {
+                        linkDiv.remove();
+                        // Show empty message if no links left
+                        if (elements.linksContainer.children.length === 0) {
+                            elements.linksContainer.appendChild(elements.emptyMessage);
+                        }
+                    }
                 };
 
-                anchor.title = 'Opens in Files app';
-
                 linkDiv.appendChild(anchor);
+                linkDiv.appendChild(deleteBtn);
+
                 return linkDiv;
             },
 
             removeEmptyMessage() {
-                if (elements.emptyMessage) {
+                if (elements.emptyMessage && elements.emptyMessage.parentElement) {
                     elements.emptyMessage.remove();
-                    elements.emptyMessage = null;
                 }
             }
         };
 
         const linkManager = {
-            addLink(rawPath) {
-                if (!rawPath || rawPath.trim() === '') {
-                    alert('Please enter a valid folder path.');
+            addLink(path) {
+                if (!path || path.trim() === '') {
+                    alert('Please enter or select a valid folder path.');
                     return false;
                 }
 
-                const displayText = rawPath.trim();
-                let url = rawPath.trim();
-
-                // Android local path → use content:// URI
-                if (displayText.startsWith('/') || displayText.startsWith('/Internal storage/') || displayText.startsWith('/storage/emulated/0/')) {
-                    url = utils.convertToContentUri(displayText);
-                }
-                // Windows network path or other → keep as-is
-                else if (!displayText.startsWith('http') && !displayText.startsWith('file://')) {
-                    // Optional: prefix with file:// for non-Android
-                    url = 'file://' + url;
-                }
-
-                const linkElement = utils.createLinkElement(displayText, url);
+                const displayText = path.trim();
+                const linkElement = utils.createLinkElement(displayText);
                 elements.linksContainer.appendChild(linkElement);
                 utils.removeEmptyMessage();
-
                 return true;
             },
 
-            promptAndAdd() {
-                const userInput = prompt('Paste your folder path:\n\nExamples:\n• /Internal storage/Download/Laptop\n• /storage/emulated/0/Download/MyFolder\n• \\\\server\\shared', '');
+            async browseFolder() {
+                if ('showDirectoryPicker' in window) {
+                    try {
+                        const dirHandle = await window.showDirectoryPicker();
+                        // Note: Full path not exposed, but we can use a placeholder or ask user to copy from Explorer
+                        const suggestedPath = dirHandle.name;
+                        alert(`Folder selected: "${suggestedPath}"\n\nTip: Copy the full path from File Explorer address bar and paste it here for best results.`);
+                        elements.pathInput.value = suggestedPath; // or leave blank for manual paste
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            alert('Error: ' + err.message);
+                        }
+                    }
+                } else {
+                    alert('Folder browsing is only available in Chrome/Edge on Windows.');
+                }
+            },
 
-                if (userInput === null) return; // Cancelled
+            showDialog() {
+                elements.pathInput.value = '';
+                elements.dialogOverlay.style.display = 'block';
+                elements.customDialog.style.display = 'block';
+                elements.pathInput.focus();
+            },
 
-                this.addLink(userInput);
+            hideDialog() {
+                elements.dialogOverlay.style.display = 'none';
+                elements.customDialog.style.display = 'none';
             },
 
             init() {
-                elements.addButton.addEventListener('click', () => {
-                    this.promptAndAdd();
+                elements.addButton.addEventListener('click', () => this.showDialog());
+
+                elements.cancelBtn.addEventListener('click', () => this.hideDialog());
+
+                elements.okBtn.addEventListener('click', () => {
+                    const path = elements.pathInput.value;
+                    if (this.addLink(path)) this.hideDialog();
+                });
+
+                elements.browseBtn.addEventListener('click', () => this.browseFolder());
+
+                elements.pathInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') elements.okBtn.click();
                 });
             }
         };
@@ -192,4 +290,4 @@
         linkManager.init();
     </script>
 </body>
-</html>
+    </html>

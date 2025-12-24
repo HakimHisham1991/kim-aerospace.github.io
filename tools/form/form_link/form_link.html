@@ -72,10 +72,10 @@
     <h1>My Folder Links</h1>
 
     <div class="android-note">
-        <strong>Tip for Android:</strong> Paste paths like:<br>
-        • /Internal storage/Download/laptop<br>
-        • /storage/emulated/0/Download/MyFolder<br>
-        • Or any folder path shown in your file manager
+        <strong>Best for Android:</strong> Paste paths like:<br>
+        • /Internal storage/Download/Laptop<br>
+        • /storage/emulated/0/Download/Laptop<br>
+        Clicking the link will open the folder directly in the Files app!
     </div>
 
     <button id="add-button">Add Folder Link</button>
@@ -92,50 +92,48 @@
         };
 
         const utils = {
-            // Normalize and convert Android paths to proper file:// or intent URL
-            convertToWorkingUrl(path) {
+            // Convert user-friendly path to content:// URI for Android
+            convertToContentUri(path) {
                 let cleanPath = path.trim();
 
-                // Handle common Android display paths
+                // Normalize "Internal storage" to real path
                 if (cleanPath.startsWith('/Internal storage/')) {
                     cleanPath = '/storage/emulated/0' + cleanPath.substring('/Internal storage'.length);
                 }
 
-                // If it's a local Android path starting with /storage or /
-                if (cleanPath.startsWith('/storage/emulated/0/') || cleanPath.startsWith('/sdcard/')) {
-                    const encodedPath = encodeURIComponent(cleanPath);
-                    // Use Android intent to open folder reliably
-                    return `intent:#Intent;action=android.intent.action.VIEW;type=inode/directory;scheme=file;launchFlags=0x10000000;package=com.google.android.documentsui;S.path=${encodedPath};end`;
+                // Remove leading slash for the document ID
+                if (cleanPath.startsWith('/')) {
+                    cleanPath = cleanPath.substring(1);
                 }
 
-                // For Windows network paths: \\server\share
-                if (cleanPath.startsWith('\\\\')) {
-                    return cleanPath; // Let OS handle UNC paths (works on Windows)
-                }
-
-                // For file:// URLs
-                if (cleanPath.startsWith('file://')) {
-                    return cleanPath;
-                }
-
-                // Fallback: assume it's a valid URL or path
-                return cleanPath;
+                // Build the content URI for directories
+                const encodedPath = encodeURIComponent(cleanPath.replace(/\//g, ':'));
+                return `content://com.android.externalstorage.documents/document/primary:${encodedPath}`;
             },
 
-            createLinkElement(url, displayText) {
+            createLinkElement(displayText, url) {
                 const linkDiv = document.createElement('div');
                 linkDiv.className = 'folder-link';
 
                 const anchor = document.createElement('a');
                 anchor.href = url;
-                anchor.textContent = displayText || url;
+                anchor.textContent = displayText;
                 anchor.target = '_blank';
                 anchor.rel = 'noopener';
 
-                // Special hint for Android users
-                if (url.includes('intent:')) {
-                    anchor.title = 'Opens in Files app (Android)';
-                }
+                // Add directory MIME type via JS (helps some browsers)
+                anchor.onclick = function(e) {
+                    // Fallback: try to set type via navigator if possible
+                    try {
+                        navigator.startActivity?.({
+                            action: 'android.intent.action.VIEW',
+                            data: url,
+                            type: 'vnd.android.document/directory'
+                        });
+                    } catch(err) {}
+                };
+
+                anchor.title = 'Opens in Files app';
 
                 linkDiv.appendChild(anchor);
                 return linkDiv;
@@ -156,10 +154,20 @@
                     return false;
                 }
 
-                const workingUrl = utils.convertToWorkingUrl(rawPath);
-                const displayText = rawPath.trim(); // Show original path (user-friendly)
+                const displayText = rawPath.trim();
+                let url = rawPath.trim();
 
-                const linkElement = utils.createLinkElement(workingUrl, displayText);
+                // Android local path → use content:// URI
+                if (displayText.startsWith('/') || displayText.startsWith('/Internal storage/') || displayText.startsWith('/storage/emulated/0/')) {
+                    url = utils.convertToContentUri(displayText);
+                }
+                // Windows network path or other → keep as-is
+                else if (!displayText.startsWith('http') && !displayText.startsWith('file://')) {
+                    // Optional: prefix with file:// for non-Android
+                    url = 'file://' + url;
+                }
+
+                const linkElement = utils.createLinkElement(displayText, url);
                 elements.linksContainer.appendChild(linkElement);
                 utils.removeEmptyMessage();
 
@@ -167,7 +175,7 @@
             },
 
             promptAndAdd() {
-                const userInput = prompt('Paste your folder path:\n\nExamples:\n• /Internal storage/Download/laptop\n• \\\\server\\shared\n• file:///C:/Users/Name/Documents', '');
+                const userInput = prompt('Paste your folder path:\n\nExamples:\n• /Internal storage/Download/Laptop\n• /storage/emulated/0/Download/MyFolder\n• \\\\server\\shared', '');
 
                 if (userInput === null) return; // Cancelled
 
@@ -181,7 +189,6 @@
             }
         };
 
-        // Start the app
         linkManager.init();
     </script>
 </body>

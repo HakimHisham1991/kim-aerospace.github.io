@@ -53,17 +53,17 @@ document.addEventListener('DOMContentLoaded', function() {
 function getDefaultImagePath(builder, model) {
   const defaults = {
     Mazak: {
-      "VRX i500": "images/vrx-i500.webp",
+      "VRX i500": "images/vrxi500.webp",
       "VRX730": "images/vrx730.webp",
       "VCN530C": "images/vcn530c.webp",
       "Integrex i-400": "images/integrex-i400.webp",
-      "Variaxis i-800": "images/variaxis-i800.webp"
+      "Variaxis i-800": "images/vrxi800.webp"
     },
     DMG: {
-      "DMU65 monoBLOCK": "images/dmu65-monoblock.webp",
-      "DMU95": "images/dmu95-monoblock.webp",
+      "DMU65 monoBLOCK": "images/dmu65.webp",
+      "DMU95": "images/dmu95.webp",
       "NVX5100": "images/nvx5100.webp",
-      "DMU50 3rd Gen": "images/dmu50-3rd-gen.webp"
+      "DMU50 3rd Gen": "images/dmu50.webp"
     },
     Fanuc: {
       "Robodrill α-D21LiB5": "images/robodrill-d21lib5.webp",

@@ -3,7 +3,7 @@
     "models": ["DMU65 monoBLOCK", "DMU95", "NVX5100", "DMU50 3rd Gen"],
     "specs": {
       "DMU65 monoBLOCK": {
-        "image": "images/dmu65-monoblock.webp",
+        "image": "images/dmu65.webp",
         "data": {
           "Machine Type": "5-Axis Universal Machining Center",
           "Table Size": "Ø650 mm",
@@ -29,7 +29,7 @@
         }
       },
       "DMU95": {
-        "image": "images/dmu95-monoblock.webp",
+        "image": "images/dmu95.webp",
         "data": {
           "Machine Type": "5-Axis Universal Machining Center",
           "Table Size": "Ø950 mm",
@@ -80,7 +80,7 @@
         }
       },
       "DMU50 3rd Gen": {
-        "image": "images/dmu50-3rd-gen.webp",
+        "image": "images/dmu50.webp",
         "data": {
           "Machine Type": "5-Axis Universal Machining Center",
           "Table Size": "Ø500 mm",

@@ -3,7 +3,7 @@
     "models": ["VRX i500", "VRX730", "VCN530C", "Integrex i-400", "Variaxis i-800"],
     "specs": {
       "VRX i500": {
-        "image": "images/vrx-i500.webp",
+        "image": "images/vrxi500.webp",
         "data": {
           "Machine Type": "5-Axis Vertical Machining Center",
           "Table Size": "500 × 500 mm",
@@ -27,7 +27,7 @@
         }
       },
       "VRX730": {
-        "image": "images/vrx730.webp",
+        "image": "images/vrx730.",
         "data": {
           "Machine Type": "5-Axis Vertical Machining Center",
           "Table Size": "730 × 730 mm",
@@ -50,7 +50,7 @@
         }
       },
       "VCN530C": {
-        "image": "images/vcn530c.webp",
+        "image": "images/vcn530c.",
         "data": {
           "Machine Type": "Vertical Machining Center",
           "Table Size": "1,300 × 550 mm",
@@ -99,7 +99,7 @@
         }
       },
       "Variaxis i-800": {
-        "image": "images/variaxis-i800.webp",
+        "image": "images/vrxi800.webp",
         "data": {
           "Machine Type": "Full 5-Axis Vertical Machining Center",
           "Table Size": "Ø800 mm",

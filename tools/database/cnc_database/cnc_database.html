@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+0  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CNC Machine Database</title>
+  <link rel="stylesheet" href="cnc_database.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <button id="mobile-toggle">☰</button>
+
+  <div id="sidebar">
+    <button id="toggle-btn">✕</button>
+    <h2>CNC Machines</h2>
+    <ul class="builder-list" id="builder-list"></ul>
+  </div>
+
+  <div id="main-content">
+    <!-- Builders Page -->
+    
+    <!-- In the Builders Page section -->
+<div id="builders-page">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>Machine Builders</h1>
+    <div style="display: flex; gap: 10px;">
+      <button id="reset-all-btn" class="reset-btn" title="Reset all data to default">
+        <i class="fas fa-undo"></i> Reset All to Default
+      </button>
+      <button id="add-builder-btn" class="add-btn" title="Add New Builder">
+        <i class="fas fa-plus"></i> Add Builder
+      </button>
+    </div>
+  </div>
+  <div class="grid" id="builders-grid"></div>
+</div>
+    
+
+    <!-- Models Page -->
+    <div id="models-page" style="display:none;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <a href="#" class="back-btn" id="back-to-builders">← Back to Builders</a>
+          <h1 id="current-builder"></h1>
+        </div>
+        <button id="add-model-btn" class="add-btn" title="Add New Model">
+          <i class="fas fa-plus"></i> Add Model
+        </button>
+      </div>
+      <div class="grid" id="models-grid"></div>
+    </div>
+
+    <!-- Detail Page -->
+    <div id="detail-page" style="display:none;" class="machine-detail">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+          <a href="#" class="back-btn" id="back-to-models">← Back to Models</a>
+          <h1 id="current-model"></h1>
+        </div>
+        <button id="delete-model-btn" class="delete-btn" title="Delete this model">
+          <i class="fas fa-trash"></i> Delete Model
+        </button>
+      </div>
+
+      <img id="machine-image" src="" alt="Machine Photo">
+      
+      <div style="margin: 15px 0; text-align: center;">
+        <button id="upload-btn" class="action-btn">
+          <i class="fas fa-upload"></i> Upload Photo
+        </button>
+        <button id="reset-photo-btn" class="reset-btn">
+          <i class="fas fa-redo"></i> Reset Photo
+        </button>
+        <button id="reset-data-btn" class="reset-btn">
+          <i class="fas fa-undo"></i> Reset Specs
+        </button>
+      </div>
+
+      <input type="file" id="image-upload" accept="image/*" style="display:none;">
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0;">
+  <h2>Specifications</h2>
+  <div style="display: flex; gap: 10px;">
+    <button id="add-spec-btn" class="add-btn-small">
+      <i class="fas fa-plus"></i> Add Specification
+    </button>
+    <button id="add-bulk-specs-btn" class="add-btn-small" title="Add multiple specs at once" style="background: #9b59b6;">
+      <i class="fas fa-layer-group"></i> Add Multiple
+    </button>
+  </div>
+</div>
+
+
+      
+      <table id="specs-table">
+        <tr><th>Category</th><th>Value / Link</th><th>Actions</th></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <div id="modal-overlay" class="modal-overlay"></div>
+  
+  <!-- Add Builder Modal -->
+  <div id="add-builder-modal" class="modal">
+    <div class="modal-header">
+      <h3>Add New Builder</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="builder-name">Builder Name:</label>
+        <input type="text" id="builder-name" placeholder="e.g., Haas, Okuma, Hurco">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="cancel-btn">Cancel</button>
+      <button class="save-btn">Add Builder</button>
+    </div>
+  </div>
+
+  <!-- Add Model Modal -->
+  <div id="add-model-modal" class="modal">
+    <div class="modal-header">
+      <h3>Add New Model</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="model-name">Model Name:</label>
+        <input type="text" id="model-name" placeholder="e.g., VF-2SS, GENOS M460">
+      </div>
+      <div class="form-group">
+        <label for="default-image">Default Image Path:</label>
+        <input type="text" id="default-image" placeholder="images/model-name.webp" value="images/">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="cancel-btn">Cancel</button>
+      <button class="save-btn">Add Model</button>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="delete-modal" class="modal">
+    <div class="modal-header">
+      <h3 id="delete-title">Confirm Delete</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="delete-message">Are you sure you want to delete this item?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="cancel-btn">Cancel</button>
+      <button class="delete-confirm-btn">Delete</button>
+    </div>
+  </div>
+
+  <!-- Save Indicator -->
+  <div id="save-indicator" class="save-indicator">
+    <i class="fas fa-check"></i> Changes Saved
+  </div>
+
+  <script src="cnc_database.js"></script>
+</body>
+</html>

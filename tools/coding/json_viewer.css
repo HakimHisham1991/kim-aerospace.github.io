@@ -1,0 +1,280 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 20px;
+    background-color: #f5f5f5;
+}
+h1 {
+    text-align: center;
+    color: #333;
+}
+textarea {
+    width: 100%;
+    height: 150px;
+    font-family: monospace;
+    padding: 10px;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.button-group {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+.icon-btn {
+    padding: 16px;
+    background: #007acc;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 24px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.icon-btn:hover, .icon-btn:active {
+    background: #005a99;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+.icon-btn::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    white-space: nowrap;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+}
+.icon-btn:hover::after, .icon-btn:active::after {
+    opacity: 1;
+}
+#toggleAllBtn {
+    background: #28a745;
+}
+#toggleAllBtn:hover, #toggleAllBtn:active {
+    background: #218838;
+}
+/* Flip animation for toggle button */
+#toggleAllBtn .icon {
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+#container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.row {
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+    min-height: 32px;
+}
+.expander {
+    width: 20px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    font-size: 14px;
+    color: #666;
+    font-weight: bold;
+}
+.box-wrapper {
+    position: relative;
+    display: inline-block;
+}
+.key-box, .value-box {
+    padding: 6px 32px 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    min-width: 180px;
+    max-width: 300px;
+    font-family: monospace;
+    font-size: 14px;
+    box-sizing: border-box;
+    word-break: break-word;
+    cursor: text;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: text;
+    user-select: text;
+}
+.key-box {
+    background: #f0f0f0;
+    font-weight: bold;
+    color: #d14;
+    min-width: 150px;
+}
+.value-box {
+    margin-left: 10px;
+    background: #f9f9f9;
+}
+.key-box:focus, .value-box:focus {
+    outline: 2px solid #007acc;
+    background: #ffffe0;
+}
+.array-item .key-box {
+    background: #e8f4fd;
+    color: #0066cc;
+}
+.copy-icon {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #666;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    user-select: none;
+    z-index: 10;
+    background: white;
+    padding: 4px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.box-wrapper.focused .copy-icon,
+.box-wrapper:hover .copy-icon {
+    opacity: 1;
+}
+.copy-icon:hover {
+    color: #007acc;
+}
+.json-node {
+    margin-left: 40px;
+    display: block;
+}
+.collapsed {
+    display: none !important;
+}
+.copied-feedback {
+    position: absolute;
+    right: 4px;
+    top: -28px;
+    background: #28a745;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 10;
+    white-space: nowrap;
+}
+.copied-feedback.show {
+    opacity: 1;
+}
+
+/* Make selection not interfere with hover */
+::selection {
+    background-color: rgba(0, 122, 204, 0.3);
+}
+::-moz-selection {
+    background-color: rgba(0, 122, 204, 0.3);
+}
+
+/* Mobile touch improvements */
+@media (hover: none) and (pointer: coarse) {
+    .box-wrapper.focused .copy-icon {
+        opacity: 1;
+    }
+    .box-wrapper:active .copy-icon {
+        opacity: 1;
+    }
+    .icon-btn {
+        width: 70px;
+        height: 70px;
+        font-size: 28px;
+    }
+    .icon-btn:active::after {
+        content: attr(title);
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        white-space: nowrap;
+        z-index: 1000;
+        opacity: 1;
+    }
+}
+
+/* Tablet and desktop adjustments */
+@media (min-width: 768px) {
+    .icon-btn {
+        width: 55px;
+        height: 55px;
+        font-size: 22px;
+    }
+}
+
+/* Global notifications */
+.global-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 4px;
+    background: #28a745;
+    color: white;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateX(100px);
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    max-width: 300px;
+    word-break: break-word;
+}
+
+.global-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.global-notification.error {
+    background: #dc3545;
+}
+
+.global-notification.success {
+    background: #28a745;
+}
+
+/* Mobile adjustment for notifications */
+@media (max-width: 768px) {
+    .global-notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        transform: translateY(-100px);
+    }
+    
+    .global-notification.show {
+        transform: translateY(0);
+    }
+}

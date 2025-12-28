@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Grid Viewer</title>
+    <link rel="stylesheet" href="json_viewer.css">
+</head>
+<body>
+    <h1>JSON Grid Viewer</h1>
+    <div id="container">
+        <textarea id="jsonInput">{
+  "name": "Alice Johnson",
+  "age": 28,
+  "active": true,
+  "score": null,
+  "hobbies": ["gaming", "painting", "cycling"],
+  "address": {
+    "street": "456 Elm Street",
+    "city": "Springfield",
+    "zip": "12345"
+  },
+  "tags": ["premium", "beta"]
+}</textarea>
+
+        <div class="button-group">
+            <button class="icon-btn" onclick="loadJSON()" title="Load / Update View">
+                <span class="icon">⬇️</span>
+            </button>
+            <button class="icon-btn" onclick="exportJSON()" title="Copy JSON to Textarea">
+                <span class="icon">⬆️</span>
+            </button>
+            <button class="icon-btn" id="toggleAllBtn" onclick="toggleAllCollapse()" title="Collapse All">
+                <span class="icon">⏷</span>
+            </button>
+        </div>
+
+        <div id="editor" style="margin-top: 20px;"></div>
+    </div>
+
+    <script src="json_viewer.js"></script>
+</body>
+</html>

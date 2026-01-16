@@ -2,22 +2,36 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>rev16 Interdepartmental Forms - Locking Demo</title>
+<title>REV17 Interdepartmental Forms - Locking Demo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
     body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
-    .user-bar { background-color: #e3f2fd; padding: 12px 20px; border-radius: 8px; display: inline-block; font-size: 16px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin-bottom: 10px; }
+    .user-bar {
+        background-color: #e3f2fd;
+        padding: 12px 20px;
+        border-radius: 8px;
+        display: inline-block;
+        font-size: 16px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
     .user-bar span { font-weight: bold; color: #1976d2; }
     .login-btn { background-color: #4CAF50; padding: 10px 20px; font-size: 16px; margin-right: 10px; }
     .logout-btn { background-color: #f44336; }
+    .login-btn:hover { background-color: #43a047; }
+    .logout-btn:hover { background-color: #d32f2f; }
     table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
     th { background-color: #4CAF50; color: white; }
+    tr:hover { background-color: #f1f1f1; }
     button { padding: 8px 12px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button:disabled { background-color: #aaa; }
+    button:hover { background-color: #1976D2; }
+    button:disabled { background-color: #aaa; cursor: not-allowed; }
     .editing { color: #d32f2f; font-weight: bold; }
     .free { color: #388e3c; }
     .admin-btn { background-color: #f44336; margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+    .admin-btn:hover { background-color: #d32f2f; }
 </style>
 </head>
 <body>
@@ -28,9 +42,16 @@
     <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display:none;">Logout</button>
 </div>
 
-<h1>Interdepartmental Stamping Forms</h1>
+<h1>Interdepartmental Stamping Forms Rev08</h1>
 
 <table id="formsTable">
+    <thead>
+        <tr>
+            <th>Form ID</th>
+            <th>Now Editing</th>
+            <th>Action</th>
+        </tr>
+    </thead>
     <tbody>
         <tr data-form="PCN/25/AG01/001">
             <td>PCN/25/AG01/001</td>
@@ -53,39 +74,46 @@
 <button class="admin-btn" onclick="clearAllLocks()">Clear All Locks (for testing)</button>
 
 <script>
-let CURRENT_USER = localStorage.getItem('currentDemoUser') || '';
+// Load current user from localStorage
+let CURRENT_USER = localStorage.getItem('currentDemoUser');
 
 function updateUserDisplay() {
     const userSpan = document.getElementById('currentUser');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
     if (CURRENT_USER) {
         userSpan.textContent = CURRENT_USER;
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('logoutBtn').style.display = 'inline-block';
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
     } else {
         userSpan.textContent = 'Not logged in';
-        document.getElementById('loginBtn').style.display = 'inline-block';
-        document.getElementById('logoutBtn').style.display = 'none';
+        loginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
     }
     refreshLocks();
 }
 
+// Login function
 function login() {
     const username = prompt("Enter your username:", "UserA");
-    if (username && username.trim()) {
+    if (username && username.trim() !== '') {
         CURRENT_USER = username.trim();
         localStorage.setItem('currentDemoUser', CURRENT_USER);
         updateUserDisplay();
     }
 }
 
+// Logout function
 function logout() {
-    if (confirm('Logout?')) {
+    if (confirm('Logout and clear your username?')) {
         localStorage.removeItem('currentDemoUser');
-        CURRENT_USER = '';
+        CURRENT_USER = null;
         updateUserDisplay();
     }
 }
 
+// Lock timeout: 5 minutes
 const LOCK_TIMEOUT = 5 * 60 * 1000;
 
 function refreshLocks() {
@@ -95,11 +123,12 @@ function refreshLocks() {
         const statusCell = row.querySelector('.status');
         const button = row.querySelector('button');
         const lockKey = 'lock_' + formId;
-        const lockData = localStorage.getItem(lockKey);
 
+        const lockData = localStorage.getItem(lockKey);
         if (lockData) {
-            const parsed = JSON.parse(lockData);
-            const age = Date.now() - parsed.timestamp;
+            let { user, timestamp } = JSON.parse(lockData);
+            const age = Date.now() - timestamp;
+
             if (age > LOCK_TIMEOUT) {
                 localStorage.removeItem(lockKey);
                 statusCell.textContent = "None";
@@ -107,9 +136,9 @@ function refreshLocks() {
                 button.textContent = "Open Form";
                 button.disabled = false;
             } else {
-                statusCell.textContent = parsed.user + " (editing)";
+                statusCell.textContent = user + " (editing)";
                 statusCell.className = "status editing";
-                if (parsed.user === CURRENT_USER) {
+                if (user === CURRENT_USER) {
                     button.textContent = "You are editing";
                     button.disabled = true;
                 } else {
@@ -133,20 +162,21 @@ function openForm(formId) {
     }
 
     const lockKey = 'lock_' + formId;
-    const lockData = localStorage.getItem(lockKey);
+    let existingLock = localStorage.getItem(lockKey);
     let canEdit = true;
 
-    if (lockData) {
-        const parsed = JSON.parse(lockData);
-        const age = Date.now() - parsed.timestamp;
+    if (existingLock) {
+        let { user, timestamp } = JSON.parse(existingLock);
+        const age = Date.now() - timestamp;
+
         if (age > LOCK_TIMEOUT) {
             localStorage.removeItem(lockKey);
-        } else if (parsed.user !== CURRENT_USER) {
+            existingLock = null;
+        } else if (user !== CURRENT_USER) {
             canEdit = false;
         }
     }
 
-    // Always set/refresh lock if canEdit (first user or your own)
     if (canEdit) {
         localStorage.setItem(lockKey, JSON.stringify({
             user: CURRENT_USER,
@@ -154,30 +184,32 @@ function openForm(formId) {
         }));
     }
 
-        // Pass username and edit mode via URL
-const params = `?form=${encodeURIComponent(formId)}&user=${encodeURIComponent(CURRENT_USER)}&edit=${canEdit ? 1 : 0}`;
-window.open('form.html' + params, '_blank');
+    const editParam = canEdit ? "?edit=1" : "?edit=0";
+    window.open('form.html?form=' + encodeURIComponent(formId) + editParam, '_blank');
 
-
-
-    setTimeout(refreshLocks, 500);
+    setTimeout(refreshLocks, 300);
 }
 
 function clearAllLocks() {
-    if (confirm("Clear ALL locks?")) {
-        Object.keys(localStorage)
-            .filter(k => k.startsWith('lock_'))
-            .forEach(k => localStorage.removeItem(k));
+    if (confirm("Clear ALL form locks? This is for testing only.")) {
+        for (let key in localStorage) {
+            if (key.startsWith('lock_')) {
+                localStorage.removeItem(key);
+            }
+        }
         refreshLocks();
         alert("All locks cleared!");
     }
 }
 
+// Initial setup
 updateUserDisplay();
 setInterval(refreshLocks, 5000);
 refreshLocks();
+
 </script>
 
-<p><small>Tip: As the first user, you will always get edit mode after clearing locks.</small></p>
+<p><small><strong>Tip:</strong> On mobile, use incognito tabs or clear site data to simulate different users.</small></p>
+
 </body>
 </html>

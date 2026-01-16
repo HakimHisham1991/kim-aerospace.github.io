@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>REV13 Real-Time Form Locking Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        margin: 40px;
+        background-color: #f8fafc;
+        color: #333;
+        line-height: 1.6;
+    }
+
+    .user-bar {
+        background-color: #e0f2fe;
+        padding: 14px 24px;
+        border-radius: 12px;
+        display: inline-block;
+        font-size: 17px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border-left: 5px solid #0ea5e9;
+    }
+
+    .user-bar span {
+        font-weight: 600;
+        color: #0369a1;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    th, td {
+        padding: 14px 18px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    th {
+        background-color: #16a34a;
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9em;
+        letter-spacing: 0.5px;
+    }
+
+    /* Zebra striping for better readability */
+    tbody tr:nth-child(even) {
+        background-color: #f8fafc;
+    }
+
+    tbody tr:hover {
+        background-color: #eff6ff;
+        transition: background-color 0.2s ease;
+    }
+
+    button {
+        padding: 9px 16px;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    button:hover:not(:disabled) {
+        background-color: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    button:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    button:disabled {
+        background-color: #94a3b8;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .editing {
+        color: #dc2626;
+        font-weight: 600;
+    }
+
+    .free {
+        color: #16a34a;
+        font-weight: 600;
+    }
+
+    .heartbeat-recent {
+        color: #15803d;
+        font-weight: 600;
+    }
+
+    .heartbeat-stale {
+        color: #b91c1c;
+        font-weight: 700;
+    }
+
+    .admin-btn {
+        background-color: #ef4444;
+        margin-top: 28px;
+        padding: 12px 28px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+    }
+
+    .admin-btn:hover:not(:disabled) {
+        background-color: #dc2626;
+    }
+
+    /* Responsive table on small screens */
+    @media (max-width: 768px) {
+        table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        body {
+            margin: 20px;
+        }
+
+        .user-bar {
+            font-size: 16px;
+            padding: 12px 18px;
+        }
+    }
+	.duration {
+    font-weight: bold;
+    color: #1976d2;
+    text-align: center;
+}
+</style>
+
+</head>
+<body>
+
+<div class="user-bar">
+    Current User: <span id="currentUser">Not logged in</span>
+    <button onclick="login()">Login as...</button>
+</div>
+
+<h1>Interdepartmental Stamping Forms (Real-Time Locking + Live Heartbeat)</h1>
+
+<table id="formsTable">
+    <thead>
+        <tr>
+            <th>Form ID</th>
+            <th>Status</th>
+            <th>Last Activity</th>
+            <th>Editing Duration</th> <!-- NEW COLUMN -->
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr data-form="PCN/25/AG01/001">
+            <td>PCN/25/AG01/001</td>
+            <td class="status free">Free</td>
+            <td class="heartbeat">-</td>
+            <td class="duration">-</td> <!-- NEW CELL -->
+            <td><button onclick="openForm('PCN/25/AG01/001')">Open Form</button></td>
+        </tr>
+        <tr data-form="PCN/25/AG01/002">
+            <td>PCN/25/AG01/002</td>
+            <td class="status free">Free</td>
+            <td class="heartbeat">-</td>
+            <td class="duration">-</td>
+            <td><button onclick="openForm('PCN/25/AG01/002')">Open Form</button></td>
+        </tr>
+        <tr data-form="PCN/25/AL10/001">
+            <td>PCN/25/AL10/001</td>
+            <td class="status free">Free</td>
+            <td class="heartbeat">-</td>
+            <td class="duration">-</td>
+            <td><button onclick="openForm('PCN/25/AL10/001')">Open Form</button></td>
+        </tr>
+    </tbody>
+</table>
+<button class="admin-btn" onclick="clearAllLocks()">Clear All Locks (Admin)</button>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+
+let CURRENT_USER = localStorage.getItem('currentDemoUser') || '';
+const lastHeartbeat = new Map();   // formId -> timestamp of last heartbeat
+const lockStartTime = new Map();   // formId -> when the current lock began
+
+function updateUserDisplay() {
+    document.getElementById('currentUser').textContent = CURRENT_USER || 'Not logged in';
+}
+
+function formatDuration(seconds) {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+}
+
+function updateRow(formId, user) {
+    const row = document.querySelector(`tr[data-form="${formId}"]`);
+    const statusCell = row.querySelector('.status');
+    const heartbeatCell = row.querySelector('.heartbeat');
+    const durationCell = row.querySelector('.duration'); // NEW
+    const button = row.querySelector('button');
+
+    if (!user) {
+        statusCell.textContent = 'Free';
+        statusCell.className = 'status free';
+        heartbeatCell.textContent = '-';
+        heartbeatCell.className = 'heartbeat';
+        durationCell.textContent = '-';
+        durationCell.className = 'duration';
+        button.textContent = 'Open Form';
+        lastHeartbeat.delete(formId);
+        lockStartTime.delete(formId);
+    } else {
+        statusCell.textContent = `${user} (editing)`;
+        statusCell.className = 'status editing';
+
+        if (user === CURRENT_USER) {
+            button.textContent = 'You are editing';
+        } else {
+            button.textContent = 'Open (Read-Only)';
+        }
+    }
+}
+
+// Initial locks from server
+socket.on('initialLocks', (lockMap) => {
+    Object.entries(lockMap).forEach(([formId, {user, timestamp}]) => {
+        if (user) {
+            lastHeartbeat.set(formId, timestamp || Date.now());
+            lockStartTime.set(formId, timestamp || Date.now()); // assume started now if unknown
+        }
+        updateRow(formId, user);
+    });
+});
+
+// When lock is acquired/released
+socket.on('lockUpdate', ({formId, user, timestamp}) => {
+    if (user && timestamp) {
+        lastHeartbeat.set(formId, timestamp);
+        // If this is a NEW lock (no previous start time), set start now
+        if (!lockStartTime.has(formId)) {
+            lockStartTime.set(formId, timestamp);
+        }
+    } else if (!user) {
+        lastHeartbeat.delete(formId);
+        lockStartTime.delete(formId);
+    }
+    updateRow(formId, user);
+});
+
+// Heartbeat updates → only refresh "last activity"
+socket.on('heartbeatUpdate', ({formId, timestamp}) => {
+    if (lockStartTime.has(formId)) {  // only if someone is editing
+        lastHeartbeat.set(formId, timestamp);
+    }
+});
+
+let openFormWindows = {};
+
+function openForm(formId) {
+    if (!CURRENT_USER) {
+        alert("Please login first!");
+        return;
+    }
+
+    const tabName = `formTab_${formId}`;
+    const params = `?form=${encodeURIComponent(formId)}&user=${encodeURIComponent(CURRENT_USER)}`;
+    const url = 'form.html' + params;
+
+    let win = openFormWindows[formId];
+
+    if (win && !win.closed) {
+        win.location.href = url;
+        win.focus();
+    } else {
+        win = window.open(url, tabName);
+        if (win) {
+            openFormWindows[formId] = win;
+            win.focus();
+        } else {
+            alert("Please allow pop-ups for this site.");
+        }
+    }
+}
+
+function clearAllLocks() {
+    if (confirm("Clear ALL server locks? (Admin action)")) {
+        fetch('/clear-locks', {method: 'POST'}).then(() => location.reload());
+    }
+}
+
+function login() {
+    const username = prompt("Enter your username:", "UserA");
+    if (username && username.trim()) {
+        CURRENT_USER = username.trim();
+        localStorage.setItem('currentDemoUser', CURRENT_USER);
+        updateUserDisplay();
+    }
+}
+
+// Live update every second
+setInterval(() => {
+    document.querySelectorAll('tr[data-form]').forEach(row => {
+        const formId = row.getAttribute('data-form');
+        const statusText = row.querySelector('.status').textContent;
+
+        if (statusText.includes('(editing)')) {
+            const heartbeatCell = row.querySelector('.heartbeat');
+            const durationCell = row.querySelector('.duration');
+
+            // Last Activity (resets every ~10s → proves alive)
+            const secondsAgo = lastHeartbeat.has(formId)
+                ? Math.floor((Date.now() - lastHeartbeat.get(formId)) / 1000)
+                : 0;
+
+            if (secondsAgo < 20) {
+                heartbeatCell.textContent = `${secondsAgo} seconds ago`;
+                heartbeatCell.className = 'heartbeat heartbeat-recent';
+            } else {
+                heartbeatCell.textContent = `Stale (${secondsAgo}s)`;
+                heartbeatCell.className = 'heartbeat heartbeat-stale';
+            }
+
+            // Editing Duration (climbs forever)
+            const startTime = lockStartTime.get(formId) || Date.now();
+            const totalSeconds = Math.floor((Date.now() - startTime) / 1000);
+            durationCell.textContent = formatDuration(totalSeconds);
+            durationCell.className = 'duration heartbeat-recent';
+        }
+    });
+}, 1000);
+
+// Cleanup closed windows
+setInterval(() => {
+    Object.keys(openFormWindows).forEach(formId => {
+        if (openFormWindows[formId]?.closed) {
+            delete openFormWindows[formId];
+        }
+    });
+}, 10000);
+
+updateUserDisplay();
+</script>
+
+<p><small>Open in multiple tabs/windows with different usernames. Watch the "Last Activity" column count up smoothly!</small></p>
+</body>
+</html>
